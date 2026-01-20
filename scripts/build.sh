@@ -14,10 +14,10 @@ echo ""
 echo "📦 Building for Claude Code..."
 "$PROJECT_ROOT/platforms/claude-code/build.sh"
 
-# TODO: Add more platforms
-# echo ""
-# echo "📦 Building for Cursor..."
-# "$PROJECT_ROOT/platforms/cursor/build.sh"
+# Build for Cursor
+echo ""
+echo "📦 Building for Cursor..."
+"$PROJECT_ROOT/platforms/cursor/build.sh"
 
 echo ""
 echo "✅ Build complete!"
