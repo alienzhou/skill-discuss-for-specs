@@ -2,11 +2,11 @@
 
 > Status: In Progress | Round: R1 | Date: YYYY-MM-DD
 
-## 🔴 Current Focus
+## 🔵 Current Focus
 
 - **[Key question being discussed]**
 
-## 🟡 Pending
+## ⚪ Pending
 
 - [ ] Question A
 - [ ] Question B

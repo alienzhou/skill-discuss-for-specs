@@ -194,22 +194,24 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 
 ## 🚀 Quick Start
 
-### Installation (Claude Code)
+### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/skill-discuss-for-specs.git
-cd skill-discuss-for-specs
+# One-command install (auto-detects platform)
+npx discuss-skills install
 
-# Install for Claude Code
-./platforms/claude-code/install.sh
+# Or specify platform explicitly
+npx discuss-skills install --platform cursor
+npx discuss-skills install --platform claude-code
+
+# Install to a specific project directory
+npx discuss-skills install --platform cursor --target ~/my-project
 ```
 
-### Installation (Cursor) - Coming Soon
+### Requirements
 
-```bash
-./platforms/cursor/install.sh
-```
+- **Node.js** 16+ (for npx)
+- **Python** 3.8+ with PyYAML (auto-checked during install)
 
 ### Start a Discussion
 
@@ -218,6 +220,12 @@ Once installed, simply tell your AI:
 > "Enter discussion mode. I want to design [your topic]."
 
 The Agent will guide you through a structured conversation, tracking decisions and progress automatically.
+
+### Uninstall
+
+```bash
+npx discuss-skills uninstall --platform cursor
+```
 
 ---
 
@@ -229,43 +237,21 @@ skill-discuss-for-specs/
 │   ├── discuss-coordinator/    # Discussion coordination & tracking
 │   └── discuss-output/         # Outline rendering & documentation
 ├── hooks/               # ⚡ Automation scripts (Python)
-│   ├── post-response/       # Round counting, stale detection
+│   ├── file-edit/           # File edit tracking hook
+│   ├── stop/                # Precipitation check hook
 │   └── common/              # Shared utilities
-├── platforms/           # 🔌 Platform adaptations
-│   ├── claude-code/         # Claude Code integration
-│   └── cursor/              # Cursor integration (planned)
+├── npm-package/         # 📦 NPM distribution package
+├── platforms/           # 🔌 Platform build scripts
 ├── config/              # ⚙️ Configuration templates
-├── templates/           # 📄 Document templates
 └── discuss/             # 💬 Discussion archives (examples)
 ```
 
 ---
 
-## 🏗️ Architecture
-
-### Skills (Markdown Instructions for AI)
-
-- **discuss-coordinator**: Facilitates discussion flow, tracks problems and trends, recognizes consensus
-- **discuss-output**: Renders outlines, manages files, generates decision documents
-
-### Hooks (Python Scripts)
-
-- **post-response**: Triggered after each AI response
-  - `check_stale.py`: Detects decisions awaiting documentation
-  - `update_round.py`: Maintains round counter
-- **common**: Shared utilities for meta.yaml parsing and file operations
-
-### Design Principle
-
-> **Intelligence work for Agent, process work for Hook**
-
-The AI focuses on understanding, analyzing, and guiding discussion. Mechanical tasks (counting, checking, reminding) are automated by scripts.
-
----
-
 ## 📚 Documentation
 
-- [Architecture Design Discussion](discuss/2026-01-17/skill-discuss-architecture-design/outline.md) - Real example of Discussion Mode in action
+- **[How It Works](docs/HOW-IT-WORKS.md)** - Architecture, hooks, and internal mechanisms
+- [Architecture Discussion](discuss/2026-01-17/skill-discuss-architecture-design/outline.md) - Real example of Discussion Mode
 - [Decision Records](discuss/2026-01-17/skill-discuss-architecture-design/decisions/) - Documented architectural decisions
 - [AGENTS.md](AGENTS.md) - Guidelines for AI agents working with this system
 
@@ -273,20 +259,15 @@ The AI focuses on understanding, analyzing, and guiding discussion. Mechanical t
 
 ## 🔧 Configuration
 
-Global configuration is automatically initialized on first run:
+Configuration is stored in `meta.yaml` within each discussion directory. Default thresholds:
 
 ```yaml
-# ~/.claude/skills/discuss-config.yaml (Claude Code)
-stale_detection:
-  enabled: true
-  max_stale_rounds: 3      # Rounds before reminder
-
-hooks:
-  post_response: true
-  auto_init_config: true
+config:
+  suggest_update_runs: 3    # Rounds before gentle reminder
+  force_update_runs: 10     # Rounds before strong reminder
 ```
 
-Customize thresholds and behavior to match your workflow.
+For detailed configuration options, see [How It Works](docs/HOW-IT-WORKS.md#discussion-directory-structure).
 
 ---
 
@@ -294,20 +275,34 @@ Customize thresholds and behavior to match your workflow.
 
 ### Prerequisites
 
+- Node.js 16+
 - Python 3.8+
-- pip
 
 ### Setup
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Install npm dependencies
+cd npm-package && npm install
 
-# Run tests
-python -m pytest tests/
+# Build distribution
+npm run build
 
-# Build for all platforms
-./scripts/build.sh
+# Run Python tests
+cd .. && python -m pytest tests/
+```
+
+### CLI Commands
+
+```bash
+# List supported platforms
+npx discuss-skills platforms
+
+# Install with options
+npx discuss-skills install --platform cursor --skip-hooks
+npx discuss-skills install --platform claude-code --skip-skills
+
+# Uninstall
+npx discuss-skills uninstall --platform cursor
 ```
 
 ---

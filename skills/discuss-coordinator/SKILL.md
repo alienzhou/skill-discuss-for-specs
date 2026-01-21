@@ -107,8 +107,8 @@ For reference materials and analysis that don't represent decisions, you can ref
 
 | State | Meaning | Symbol |
 |-------|---------|--------|
-| `pending` | Just raised, needs clarification | 🔴 |
-| `discussing` | Actively exploring | 🟡 |
+| `pending` | Just raised, needs clarification | ⚪ |
+| `discussing` | Actively exploring | 🔵 |
 | `resolved` | Answer found | 🟢 |
 | `rejected` | Decided not to do | ❌ |
 | `deferred` | Postponed | ⏸️ |

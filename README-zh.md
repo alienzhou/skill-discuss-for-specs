@@ -192,22 +192,24 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 
 ## 🚀 快速开始
 
-### 安装（Claude Code）
+### 安装
 
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/skill-discuss-for-specs.git
-cd skill-discuss-for-specs
+# 一键安装（自动检测平台）
+npx discuss-skills install
 
-# 为 Claude Code 安装
-./platforms/claude-code/install.sh
+# 或指定平台
+npx discuss-skills install --platform cursor
+npx discuss-skills install --platform claude-code
+
+# 安装到指定项目目录
+npx discuss-skills install --platform cursor --target ~/my-project
 ```
 
-### 安装（Cursor）- 即将推出
+### 前置要求
 
-```bash
-./platforms/cursor/install.sh
-```
+- **Node.js** 16+（用于 npx）
+- **Python** 3.8+，安装 PyYAML（安装时自动检查）
 
 ### 开始讨论
 
@@ -216,6 +218,12 @@ cd skill-discuss-for-specs
 > "进入讨论模式。我想设计 [你的主题]。"
 
 Agent 将引导你进行结构化对话，自动追踪决策和进度。
+
+### 卸载
+
+```bash
+npx discuss-skills uninstall --platform cursor
+```
 
 ---
 
@@ -227,43 +235,21 @@ skill-discuss-for-specs/
 │   ├── discuss-coordinator/    # 讨论协调与追踪
 │   └── discuss-output/         # 大纲渲染与文档生成
 ├── hooks/               # ⚡ 自动化脚本（Python）
-│   ├── post-response/       # 轮次计数、停滞检测
+│   ├── file-edit/           # 文件编辑追踪 Hook
+│   ├── stop/                # 沉淀检测 Hook
 │   └── common/              # 共享工具
-├── platforms/           # 🔌 平台适配
-│   ├── claude-code/         # Claude Code 集成
-│   └── cursor/              # Cursor 集成（计划中）
+├── npm-package/         # 📦 NPM 发布包
+├── platforms/           # 🔌 平台构建脚本
 ├── config/              # ⚙️ 配置模板
-├── templates/           # 📄 文档模板
 └── discuss/             # 💬 讨论归档（示例）
 ```
 
 ---
 
-## 🏗️ 架构
-
-### Skills（给 AI 的 Markdown 指令）
-
-- **discuss-coordinator**：促进讨论流程、追踪问题和趋势、识别共识
-- **discuss-output**：渲染大纲、管理文件、生成决策文档
-
-### Hooks（Python 脚本）
-
-- **post-response**：每次 AI 响应后触发
-  - `check_stale.py`：检测等待文档化的决策
-  - `update_round.py`：维护轮次计数器
-- **common**：meta.yaml 解析和文件操作的共享工具
-
-### 设计原则
-
-> **智能工作给 Agent，流程工作给 Hook**
-
-AI 专注于理解、分析和引导讨论。机械性任务（计数、检查、提醒）由脚本自动化。
-
----
-
 ## 📚 文档
 
-- [架构设计讨论](discuss/2026-01-17/skill-discuss-architecture-design/outline.md) - 讨论模式实际运行的真实示例
+- **[工作原理](docs/HOW-IT-WORKS-zh.md)** - 架构、Hooks 和内部机制
+- [架构设计讨论](discuss/2026-01-17/skill-discuss-architecture-design/outline.md) - 讨论模式实际运行示例
 - [决策记录](discuss/2026-01-17/skill-discuss-architecture-design/decisions/) - 已文档化的架构决策
 - [AGENTS.md](AGENTS.md) - 与此系统协作的 AI 指南
 
@@ -271,20 +257,15 @@ AI 专注于理解、分析和引导讨论。机械性任务（计数、检查�
 
 ## 🔧 配置
 
-全局配置在首次运行时自动初始化：
+配置存储在每个讨论目录的 `meta.yaml` 中。默认阈值：
 
 ```yaml
-# ~/.claude/skills/discuss-config.yaml (Claude Code)
-stale_detection:
-  enabled: true
-  max_stale_rounds: 3      # 提醒前的轮次数
-
-hooks:
-  post_response: true
-  auto_init_config: true
+config:
+  suggest_update_runs: 3    # 轻柔提醒前的轮次数
+  force_update_runs: 10     # 强烈提醒前的轮次数
 ```
 
-自定义阈值和行为以匹配你的工作流程。
+更多配置选项详见 [工作原理](docs/HOW-IT-WORKS-zh.md#discussion-directory-structure)。
 
 ---
 
@@ -292,20 +273,34 @@ hooks:
 
 ### 前置要求
 
+- Node.js 16+
 - Python 3.8+
-- pip
 
 ### 设置
 
 ```bash
-# 安装依赖
-pip install -r requirements.txt
+# 安装 npm 依赖
+cd npm-package && npm install
 
-# 运行测试
-python -m pytest tests/
+# 构建发布包
+npm run build
 
-# 构建所有平台
-./scripts/build.sh
+# 运行 Python 测试
+cd .. && python -m pytest tests/
+```
+
+### CLI 命令
+
+```bash
+# 列出支持的平台
+npx discuss-skills platforms
+
+# 带选项安装
+npx discuss-skills install --platform cursor --skip-hooks
+npx discuss-skills install --platform claude-code --skip-skills
+
+# 卸载
+npx discuss-skills uninstall --platform cursor
 ```
 
 ---

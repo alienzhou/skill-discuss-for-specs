@@ -38,12 +38,12 @@ Use this **state-priority** order:
 
 > Status: In Progress | Round: R[N] | Date: YYYY-MM-DD
 
-## 🔴 Current Focus
+## 🔵 Current Focus
 
 - **[Primary question being discussed right now]**
 - **[Secondary question if applicable]**
 
-## 🟡 Pending
+## ⚪ Pending
 
 - [ ] Question A
 - [ ] Question B

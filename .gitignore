@@ -36,3 +36,9 @@ env/
 .dmypy.json
 dmypy.json
 platforms/*/build/
+
+# NPM package build artifacts
+npm-package/dist/
+npm-package/hooks/
+npm-package/node_modules/
+npm-package/package-lock.json

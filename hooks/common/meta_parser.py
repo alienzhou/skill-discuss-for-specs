@@ -1,10 +1,23 @@
 """
 Common utilities for meta.yaml parsing and manipulation.
+
+New Schema (v2):
+- created_at: ISO timestamp
+- current_run: incremented by stop hook
+- config: suggest_update_runs, force_update_runs
+- file_status: outline/decisions/notes tracking
 """
 
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
 import yaml
+
+
+# Default configuration values
+DEFAULT_SUGGEST_UPDATE_RUNS = 3
+DEFAULT_FORCE_UPDATE_RUNS = 10
 
 
 def load_meta(discuss_path: str) -> Optional[Dict[str, Any]]:
@@ -22,7 +35,7 @@ def load_meta(discuss_path: str) -> Optional[Dict[str, Any]]:
     if not meta_path.exists():
         return None
     
-    with open(meta_path) as f:
+    with open(meta_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -36,32 +49,225 @@ def save_meta(discuss_path: str, meta: Dict[str, Any]) -> None:
     """
     meta_path = Path(discuss_path) / "meta.yaml"
     
-    with open(meta_path, 'w') as f:
+    with open(meta_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(meta, f, sort_keys=False, allow_unicode=True)
 
 
-def get_unprecipitated_decisions(meta: Dict[str, Any]) -> list:
+def create_initial_meta() -> Dict[str, Any]:
     """
-    Get list of decisions without doc_path.
+    Create initial meta.yaml content with default values.
+    
+    Returns:
+        Dictionary with initial meta structure
+    """
+    return {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "current_run": 0,
+        "config": {
+            "suggest_update_runs": DEFAULT_SUGGEST_UPDATE_RUNS,
+            "force_update_runs": DEFAULT_FORCE_UPDATE_RUNS,
+        },
+        "file_status": {
+            "outline": {
+                "last_modified_run": 0,
+                "pending_update": False,
+            },
+            "decisions": {
+                "last_modified_run": 0,
+                "pending_update": False,
+            },
+            "notes": {
+                "last_modified_run": 0,
+                "pending_update": False,
+            },
+        },
+    }
+
+
+def ensure_meta_structure(meta: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Ensure meta has all required fields, adding defaults if missing.
+    
+    Args:
+        meta: Existing meta dictionary
+        
+    Returns:
+        Meta dictionary with all required fields
+    """
+    if "current_run" not in meta:
+        meta["current_run"] = 0
+    
+    if "config" not in meta:
+        meta["config"] = {}
+    
+    config = meta["config"]
+    if "suggest_update_runs" not in config:
+        config["suggest_update_runs"] = DEFAULT_SUGGEST_UPDATE_RUNS
+    if "force_update_runs" not in config:
+        config["force_update_runs"] = DEFAULT_FORCE_UPDATE_RUNS
+    
+    if "file_status" not in meta:
+        meta["file_status"] = {}
+    
+    file_status = meta["file_status"]
+    for file_type in ["outline", "decisions", "notes"]:
+        if file_type not in file_status:
+            file_status[file_type] = {
+                "last_modified_run": 0,
+                "pending_update": False,
+            }
+        else:
+            if "last_modified_run" not in file_status[file_type]:
+                file_status[file_type]["last_modified_run"] = 0
+            if "pending_update" not in file_status[file_type]:
+                file_status[file_type]["pending_update"] = False
+    
+    return meta
+
+
+def get_current_run(meta: Dict[str, Any]) -> int:
+    """
+    Get current run number from meta.
     
     Args:
         meta: Meta dictionary
         
     Returns:
-        List of decision dictionaries that have doc_path == null
+        Current run number (default 0)
     """
-    decisions = meta.get('decisions', [])
-    return [d for d in decisions if d.get('doc_path') is None]
+    return meta.get("current_run", 0)
 
 
-def get_current_round(meta: Dict[str, Any]) -> int:
+def set_pending_update(meta: Dict[str, Any], file_type: str) -> Dict[str, Any]:
     """
-    Get current round number from meta.
+    Set pending_update flag for a file type.
+    
+    Args:
+        meta: Meta dictionary
+        file_type: One of "outline", "decisions", "notes"
+        
+    Returns:
+        Updated meta dictionary
+    """
+    meta = ensure_meta_structure(meta)
+    meta["file_status"][file_type]["pending_update"] = True
+    return meta
+
+
+def get_pending_updates(meta: Dict[str, Any]) -> List[str]:
+    """
+    Get list of file types with pending updates.
     
     Args:
         meta: Meta dictionary
         
     Returns:
-        Current round number (default 0)
+        List of file types with pending_update=True
     """
-    return meta.get('current_round', 0)
+    meta = ensure_meta_structure(meta)
+    pending = []
+    
+    for file_type, status in meta.get("file_status", {}).items():
+        if isinstance(status, dict) and status.get("pending_update", False):
+            pending.append(file_type)
+    
+    return pending
+
+
+def clear_pending_and_update_run(meta: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Clear all pending_update flags and increment current_run.
+    
+    Also updates last_modified_run for file types that had pending updates.
+    
+    Args:
+        meta: Meta dictionary
+        
+    Returns:
+        Updated meta dictionary
+    """
+    meta = ensure_meta_structure(meta)
+    current_run = meta["current_run"]
+    
+    # Update last_modified_run for pending updates, then clear flags
+    for file_type in meta.get("file_status", {}):
+        status = meta["file_status"][file_type]
+        if isinstance(status, dict) and status.get("pending_update", False):
+            status["last_modified_run"] = current_run
+            status["pending_update"] = False
+    
+    # Increment run counter
+    meta["current_run"] = current_run + 1
+    
+    return meta
+
+
+def check_stale_status(meta: Dict[str, Any]) -> List[Tuple[str, int, bool]]:
+    """
+    Check for stale file status (not updated for a while).
+    
+    Args:
+        meta: Meta dictionary
+        
+    Returns:
+        List of tuples: (file_type, stale_runs, is_force_update)
+    """
+    meta = ensure_meta_structure(meta)
+    
+    current_run = meta["current_run"]
+    config = meta["config"]
+    suggest_runs = config.get("suggest_update_runs", DEFAULT_SUGGEST_UPDATE_RUNS)
+    force_runs = config.get("force_update_runs", DEFAULT_FORCE_UPDATE_RUNS)
+    
+    stale_items = []
+    
+    # Only check outline and decisions, notes is optional
+    for file_type in ["outline", "decisions"]:
+        status = meta["file_status"].get(file_type, {})
+        last_modified = status.get("last_modified_run", 0)
+        stale_runs = current_run - last_modified
+        
+        if stale_runs >= suggest_runs:
+            is_force = stale_runs >= force_runs
+            stale_items.append((file_type, stale_runs, is_force))
+    
+    return stale_items
+
+
+def format_stale_reminder(stale_items: List[Tuple[str, int, bool]], discuss_path: str) -> str:
+    """
+    Format a reminder message for stale items.
+    
+    Args:
+        stale_items: List of (file_type, stale_runs, is_force) tuples
+        discuss_path: Path to discussion directory for context
+        
+    Returns:
+        Formatted reminder message
+    """
+    if not stale_items:
+        return ""
+    
+    # Check if any item is force update
+    has_force = any(item[2] for item in stale_items)
+    
+    if has_force:
+        header = "## Precipitation Required\n\n"
+        header += "The following discussion files have not been updated for too long:\n\n"
+    else:
+        header = "## Precipitation Suggestion\n\n"
+        header += "The following discussion files may need updating:\n\n"
+    
+    items_text = ""
+    for file_type, stale_runs, is_force in stale_items:
+        status = "[REQUIRED]" if is_force else "[Suggested]"
+        items_text += f"- {status} `{file_type}` - {stale_runs} runs since last update\n"
+    
+    footer = f"\nDiscussion: `{discuss_path}`\n"
+    
+    if has_force:
+        footer += "\nPlease update the discussion files before continuing."
+    else:
+        footer += "\nWould you like me to help update these files?"
+    
+    return header + items_text + footer
