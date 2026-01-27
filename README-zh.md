@@ -232,16 +232,14 @@ npx discuss-skills uninstall --platform cursor
 ```
 skill-discuss-for-specs/
 ├── skills/              # 📝 技能指令（供 AI 使用的 Markdown）
-│   ├── discuss-coordinator/    # 讨论协调与追踪
-│   └── discuss-output/         # 大纲渲染与文档生成
+│   └── discuss-mode/          # 单一合并的讨论技能
 ├── hooks/               # ⚡ 自动化脚本（Python）
 │   ├── file-edit/           # 文件编辑追踪 Hook
 │   ├── stop/                # 沉淀检测 Hook
 │   └── common/              # 共享工具
 ├── npm-package/         # 📦 NPM 发布包
-├── platforms/           # 🔌 平台构建脚本
 ├── config/              # ⚙️ 配置模板
-└── discuss/             # 💬 讨论归档（示例）
+└── .discuss/            # 💬 讨论归档（示例）
 ```
 
 ---
@@ -261,8 +259,7 @@ skill-discuss-for-specs/
 
 ```yaml
 config:
-  suggest_update_runs: 3    # 轻柔提醒前的轮次数
-  force_update_runs: 10     # 强烈提醒前的轮次数
+  stale_threshold: 3      # 轻柔提醒前的轮次数
 ```
 
 更多配置选项详见 [工作原理](docs/HOW-IT-WORKS-zh.md#discussion-directory-structure)。

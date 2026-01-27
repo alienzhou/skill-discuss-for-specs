@@ -74,8 +74,8 @@ rmdir .codeflicker  # if empty
 
 | File | Old Path | New Path |
 |------|----------|----------|
-| specs/spec-kit-evaluation/00-overview.md | `../discuss/2026-01-19/` | `../.discuss/2026-01-19/` |
-| specs/spec-kit-evaluation/02-architecture-design.md | `../discuss/2026-01-19/` | `../.discuss/2026-01-19/` |
+| specs/discuss-mode-v1/1-overview.md | `../discuss/2026-01-19/` | `../.discuss/2026-01-19/` |
+| specs/discuss-mode-v1/3-architecture.md | `../discuss/2026-01-19/` | `../.discuss/2026-01-19/` |
 | docs/HOW-IT-WORKS.md | `discuss/2026-01-17/` | `.discuss/2026-01-17/` |
 
 ### Decision Rationale

@@ -38,7 +38,7 @@
 
 > **注意**：之前的版本使用两个独立的 Skill（`discuss-coordinator` + `discuss-output`）。
 > 自 2026-01-28 起，已合并为单一的 `discuss-mode` Skill。
-> 参见 [架构决策 D7](../specs/spec-kit-evaluation/02-architecture-design.md#d7-skill-architecture-merge)。
+> 参见 [架构决策 D7](../specs/discuss-mode-v1/3-architecture.md#d7-skill-architecture-merge)。
 
 ---
 
@@ -149,7 +149,7 @@ Hooks 自动化处理不需要 AI 智能的"流程性工作"：
 
 > **注意**：之前的版本使用 `discuss/`（无点号）。自 2026-01-28 起，
 > 标准化位置是 `.discuss/`（隐藏目录）。
-> 参见 [架构决策 D8](../specs/spec-kit-evaluation/02-architecture-design.md#d8-discussion-directory-structure)。
+> 参见 [架构决策 D8](../specs/discuss-mode-v1/3-architecture.md#d8-discussion-directory-structure)。
 
 ### outline.md
 
@@ -207,7 +207,7 @@ notes:
 
 > **注意**：之前的版本需要 AI agent 手动维护 meta.yaml。
 > 自 2026-01-28 起，meta.yaml 完全由 Hooks 自动化维护。
-> 参见 [架构决策 D9](../specs/spec-kit-evaluation/02-architecture-design.md#d9-metayaml-programmatic-automation)。
+> 参见 [架构决策 D9](../specs/discuss-mode-v1/3-architecture.md#d9-metayaml-programmatic-automation)。
 
 ---
 
@@ -288,7 +288,7 @@ Hooks 记录所有操作用于调试：
 
 - [README](../README-zh.md) - 快速开始和安装
 - [AGENTS.md](../AGENTS.md) - AI agent 指南
-- [架构设计](../specs/spec-kit-evaluation/02-architecture-design.md) - 设计决策
+- [架构设计](../specs/discuss-mode-v1/3-architecture.md) - 设计决策
 - [讨论记录](./../.discuss/) - 历史讨论
 
 ---

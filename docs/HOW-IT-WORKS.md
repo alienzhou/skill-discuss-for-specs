@@ -38,7 +38,7 @@ Discussion Mode uses a **Single-Skill + Hooks** architecture:
 
 > **Note**: Previous versions used two separate Skills (`discuss-coordinator` + `discuss-output`). 
 > As of 2026-01-28, these have been merged into a single `discuss-mode` Skill.
-> See [Architecture Decision D7](../specs/spec-kit-evaluation/02-architecture-design.md#d7-skill-architecture-merge).
+> See [Architecture Decision D7](../specs/discuss-mode-v1/3-architecture.md#d7-skill-architecture-merge).
 
 ---
 
@@ -149,7 +149,7 @@ Each discussion creates a structured directory:
 
 > **Note**: Previous versions used `discuss/` (without dot). As of 2026-01-28, 
 > the standardized location is `.discuss/` (hidden directory).
-> See [Architecture Decision D8](../specs/spec-kit-evaluation/02-architecture-design.md#d8-discussion-directory-structure).
+> See [Architecture Decision D8](../specs/discuss-mode-v1/3-architecture.md#d8-discussion-directory-structure).
 
 ### outline.md
 
@@ -207,7 +207,7 @@ notes:
 
 > **Note**: Previous versions required the AI agent to maintain meta.yaml. 
 > As of 2026-01-28, meta.yaml is fully automated by Hooks.
-> See [Architecture Decision D9](../specs/spec-kit-evaluation/02-architecture-design.md#d9-metayaml-programmatic-automation).
+> See [Architecture Decision D9](../specs/discuss-mode-v1/3-architecture.md#d9-metayaml-programmatic-automation).
 
 ---
 
@@ -288,7 +288,7 @@ Hooks log all operations for debugging:
 
 - [README](../README.md) - Quick start and installation
 - [AGENTS.md](../AGENTS.md) - Guidelines for AI agents
-- [Architecture Design](../specs/spec-kit-evaluation/02-architecture-design.md) - Design decisions
+- [Architecture Design](../specs/discuss-mode-v1/3-architecture.md) - Design decisions
 - [Discussion Records](./../.discuss/) - Historical discussions
 
 ---

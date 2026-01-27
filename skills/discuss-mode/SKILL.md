@@ -255,5 +255,58 @@ For detailed templates and specifications, see:
 
 ---
 
+## 🎉 Discussion Complete Template
+
+When all questions in the outline are resolved/rejected/deferred, include this guidance in your response:
+
+```markdown
+---
+
+## 🎉 Discussion Complete!
+
+Your discussion has been captured. Here's what you can do next:
+
+### 📁 Your Discussion Artifacts
+Location: `.discuss/YYYY-MM-DD/[topic]/`
+
+Files:
+- `outline.md` - Discussion summary and decisions index
+- `decisions/` - Detailed decision documents
+- `notes/` - Reference materials (if any)
+
+### 🚀 Recommended Next Steps
+
+**Option 1: Generate Technical Specs**
+Use a Spec-Driven Development (SDD) tool to convert this discussion into a formal specification:
+- Reference the discussion directory as context
+- Command example: "Based on decisions in .discuss/..., generate technical specs"
+
+**Option 2: Create Execution Plan**
+Switch to Plan mode or use a planning agent:
+- Provide the discussion directory as context
+- Generate a step-by-step implementation plan
+
+**Option 3: Direct Execution**
+Start implementing immediately:
+- Reference specific decision documents as needed
+- Use the discussion as your design reference
+
+**Option 4: Archive for Later**
+No action needed now - your discussion is saved and can be revisited anytime.
+
+---
+
+Which path would you like to take?
+```
+
+### Key Principles for This Template
+
+1. **Boundary Clarity**: Our responsibility ends at discussion; we guide but don't implement downstream
+2. **Tool Agnostic**: Suggest categories of tools, not specific products
+3. **Context Emphasis**: Always tell users where files are and how to reference them
+4. **No Lock-in**: Users can use any SDD tool or planning approach they prefer
+
+---
+
 **Version**: 0.2.0  
 **Last Updated**: 2026-01-28

@@ -262,8 +262,7 @@ Configuration is stored in `meta.yaml` within each discussion directory. Default
 
 ```yaml
 config:
-  suggest_update_runs: 3    # Rounds before gentle reminder
-  force_update_runs: 10     # Rounds before strong reminder
+  stale_threshold: 3      # Rounds before gentle reminder
 ```
 
 For detailed configuration options, see [How It Works](docs/HOW-IT-WORKS.md#discussion-directory-structure).

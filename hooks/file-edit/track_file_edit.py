@@ -5,6 +5,11 @@ Hook 1: File Edit Tracking
 This hook is triggered after each file edit and tracks which discussion
 files have been modified during the current AI conversation session.
 
+Behavior:
+- When outline is edited: Check session file, increment round if first update
+- When decision/note is edited: Update corresponding entry in meta.yaml
+- Uses session-based round counting for accurate "per-conversation" tracking
+
 Trigger:
 - Claude Code: PostToolUse with matcher "Edit|Write|MultiEdit"
 - Cursor: afterFileEdit
@@ -17,12 +22,14 @@ Output (stdout JSON):
 - Always outputs {} to allow the operation to continue
 
 Side Effect:
-- Updates meta.yaml with pending_update=true for the relevant file type
+- Updates meta.yaml with file tracking info
+- Manages session files for round counting
 """
 
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -37,6 +44,7 @@ from common.logging_utils import (
     log_file_operation,
     log_hook_end,
     log_hook_start,
+    log_info,
     log_meta_update,
 )
 from common.meta_parser import (
@@ -44,12 +52,17 @@ from common.meta_parser import (
     ensure_meta_structure,
     load_meta,
     save_meta,
-    set_pending_update,
 )
 from common.platform_utils import (
+    Platform,
     allow_and_exit,
+    detect_platform,
     get_file_path_from_input,
     read_stdin_json,
+)
+from common.session_manager import (
+    get_session_id,
+    mark_outline_updated,
 )
 
 
@@ -90,6 +103,59 @@ def determine_file_type(file_path: Path, discuss_root: Path) -> Optional[str]:
         return "notes"
     
     return None
+
+
+def update_file_entry(
+    meta: dict, 
+    file_type: str, 
+    file_path: Path, 
+    discuss_root: Path,
+    current_round: int
+) -> dict:
+    """
+    Update or create a file entry in meta.yaml.
+    
+    For decisions and notes, we track individual files.
+    
+    Args:
+        meta: Meta dictionary
+        file_type: "decisions" or "notes"
+        file_path: Path to the file
+        discuss_root: Discussion root directory
+        current_round: Current round number
+        
+    Returns:
+        Updated meta dictionary
+    """
+    try:
+        relative_path = str(file_path.relative_to(discuss_root))
+    except ValueError:
+        relative_path = file_path.name
+    
+    # Ensure the array exists
+    if file_type not in meta:
+        meta[file_type] = []
+    
+    # Find existing entry or create new
+    found = False
+    for entry in meta[file_type]:
+        if entry.get("path") == relative_path or entry.get("name") == file_path.name:
+            entry["path"] = relative_path
+            entry["name"] = file_path.name
+            entry["last_modified"] = datetime.now(timezone.utc).isoformat()
+            entry["last_updated_round"] = current_round
+            found = True
+            break
+    
+    if not found:
+        meta[file_type].append({
+            "path": relative_path,
+            "name": file_path.name,
+            "last_modified": datetime.now(timezone.utc).isoformat(),
+            "last_updated_round": current_round,
+        })
+    
+    return meta
 
 
 def main():
@@ -136,21 +202,53 @@ def main():
         
         log_discuss_detection(str(discuss_root), file_type)
         
+        # Detect platform for session management
+        platform = detect_platform(input_data)
+        session_id = get_session_id(input_data, platform.value)
+        
+        log_debug(f"Platform: {platform.value}, Session: {session_id}")
+        
         # Load or create meta.yaml
         meta = load_meta(str(discuss_root))
         
         if meta is None:
             log_debug("No meta.yaml found, creating initial meta")
             meta = create_initial_meta()
+            # Set topic from directory name
+            meta["topic"] = discuss_root.name
         else:
             meta = ensure_meta_structure(meta)
         
-        # Set pending_update for this file type
-        meta = set_pending_update(meta, file_type)
+        current_round = meta.get("current_round", 0)
+        
+        # Handle based on file type
+        if file_type == "outline":
+            # Check if this is the first outline update in this session
+            is_first_update = mark_outline_updated(
+                platform.value, 
+                session_id, 
+                str(file_path)
+            )
+            
+            if is_first_update:
+                # Increment round counter
+                current_round += 1
+                meta["current_round"] = current_round
+                log_info(f"Round incremented to {current_round} (first outline update in session)")
+            else:
+                log_debug("Additional outline update in same session, round not incremented")
+        
+        elif file_type in ["decisions", "notes"]:
+            # Update file entry with last_updated_round
+            meta = update_file_entry(meta, file_type, file_path, discuss_root, current_round)
+            log_info(f"Updated {file_type} entry: {file_path.name} at round {current_round}")
         
         # Save updated meta
         save_meta(str(discuss_root), meta)
-        log_meta_update(str(discuss_root), {f"{file_type}.pending_update": True})
+        log_meta_update(str(discuss_root), {
+            "file_type": file_type,
+            "current_round": current_round,
+        })
         
         log_hook_end(HOOK_NAME, {}, success=True)
         allow_and_exit()

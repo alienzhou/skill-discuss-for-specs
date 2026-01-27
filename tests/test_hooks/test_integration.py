@@ -62,19 +62,18 @@ class TestTrackFileEditHook:
     
     def test_outline_file_update(self, tmp_path):
         """Test tracking outline.md update."""
-        # Create discussion structure
-        discuss_dir = tmp_path / "discuss" / "topic"
+        # Create .discuss structure (new naming)
+        discuss_dir = tmp_path / ".discuss" / "2026-01-28" / "topic"
         discuss_dir.mkdir(parents=True)
         
-        # Create initial meta.yaml
+        # Create initial meta.yaml with new schema
         meta = {
-            "current_run": 5,
-            "config": {"suggest_update_runs": 3, "force_update_runs": 10},
-            "file_status": {
-                "outline": {"last_modified_run": 3, "pending_update": False},
-                "decisions": {"last_modified_run": 2, "pending_update": False},
-                "notes": {"last_modified_run": 0, "pending_update": False},
-            }
+            "topic": "topic",
+            "created": "2026-01-28",
+            "current_round": 5,
+            "config": {"stale_threshold": 3},
+            "decisions": [],
+            "notes": [],
         }
         (discuss_dir / "meta.yaml").write_text(yaml.dump(meta))
         
@@ -82,39 +81,40 @@ class TestTrackFileEditHook:
         outline = discuss_dir / "outline.md"
         outline.write_text("# Outline")
         
-        # Run hook
-        input_data = {"file_path": str(outline)}
-        code, stdout, stderr = run_hook(TRACK_FILE_EDIT, input_data)
+        # Run hook with session_id
+        input_data = {
+            "file_path": str(outline),
+            "session_id": "test-session-123"
+        }
+        code, stdout, stderr = run_hook(TRACK_FILE_EDIT, input_data, cwd=tmp_path)
         
         assert code == 0
         assert stdout.strip() == "{}"
         
-        # Check meta.yaml was updated
+        # Check meta.yaml was updated - current_round should be 6 now
         updated_meta = yaml.safe_load((discuss_dir / "meta.yaml").read_text())
-        assert updated_meta["file_status"]["outline"]["pending_update"] is True
-        assert updated_meta["file_status"]["decisions"]["pending_update"] is False
+        assert updated_meta["current_round"] == 6
     
     def test_decision_file_update(self, tmp_path):
         """Test tracking decision file update."""
-        # Create discussion structure
-        discuss_dir = tmp_path / "discuss" / "topic"
+        # Create .discuss structure
+        discuss_dir = tmp_path / ".discuss" / "2026-01-28" / "topic"
         decisions_dir = discuss_dir / "decisions"
         decisions_dir.mkdir(parents=True)
         
-        # Create initial meta.yaml
+        # Create initial meta.yaml with new schema
         meta = {
-            "current_run": 5,
-            "config": {"suggest_update_runs": 3, "force_update_runs": 10},
-            "file_status": {
-                "outline": {"last_modified_run": 4, "pending_update": False},
-                "decisions": {"last_modified_run": 2, "pending_update": False},
-                "notes": {"last_modified_run": 0, "pending_update": False},
-            }
+            "topic": "topic",
+            "created": "2026-01-28",
+            "current_round": 5,
+            "config": {"stale_threshold": 3},
+            "decisions": [],
+            "notes": [],
         }
         (discuss_dir / "meta.yaml").write_text(yaml.dump(meta))
         
         # Create decision file
-        decision = decisions_dir / "01-test.md"
+        decision = decisions_dir / "D01-test.md"
         decision.write_text("# Decision")
         
         # Run hook with Claude Code format
@@ -124,15 +124,17 @@ class TestTrackFileEditHook:
                 "file_path": str(decision),
                 "old_string": "a",
                 "new_string": "b"
-            }
+            },
+            "session_id": "test-session-456"
         }
-        code, stdout, stderr = run_hook(TRACK_FILE_EDIT, input_data)
+        code, stdout, stderr = run_hook(TRACK_FILE_EDIT, input_data, cwd=tmp_path)
         
         assert code == 0
         
-        # Check meta.yaml was updated
+        # Check meta.yaml has the decision entry
         updated_meta = yaml.safe_load((discuss_dir / "meta.yaml").read_text())
-        assert updated_meta["file_status"]["decisions"]["pending_update"] is True
+        assert len(updated_meta["decisions"]) == 1
+        assert updated_meta["decisions"][0]["name"] == "D01-test.md"
 
 
 class TestCheckPrecipitationHook:
@@ -150,17 +152,18 @@ class TestCheckPrecipitationHook:
     def test_stop_hook_active_bypass(self, tmp_path):
         """Test that stop_hook_active=True bypasses check."""
         # Create discussion with stale content
-        discuss_dir = tmp_path / "discuss" / "topic"
+        discuss_dir = tmp_path / ".discuss" / "2026-01-28" / "topic"
         discuss_dir.mkdir(parents=True)
         
         meta = {
-            "current_run": 15,
-            "config": {"suggest_update_runs": 3, "force_update_runs": 10},
-            "file_status": {
-                "outline": {"last_modified_run": 0, "pending_update": False},
-                "decisions": {"last_modified_run": 0, "pending_update": False},
-                "notes": {"last_modified_run": 0, "pending_update": False},
-            }
+            "topic": "topic",
+            "created": "2026-01-28",
+            "current_round": 15,
+            "config": {"stale_threshold": 3},
+            "decisions": [
+                {"name": "D01.md", "last_updated_round": 0}
+            ],
+            "notes": [],
         }
         (discuss_dir / "meta.yaml").write_text(yaml.dump(meta))
         
@@ -174,29 +177,27 @@ class TestCheckPrecipitationHook:
         assert code == 0
         assert stdout.strip() == "{}"
     
-    def test_clears_pending_and_increments_run(self, tmp_path):
-        """Test that pending updates are cleared and run is incremented."""
-        discuss_dir = tmp_path / "discuss" / "topic"
+    def test_no_action_without_session(self, tmp_path):
+        """Test that hook does nothing if no session (not in discussion mode)."""
+        discuss_dir = tmp_path / ".discuss" / "2026-01-28" / "topic"
         discuss_dir.mkdir(parents=True)
         
         meta = {
-            "current_run": 5,
-            "config": {"suggest_update_runs": 3, "force_update_runs": 10},
-            "file_status": {
-                "outline": {"last_modified_run": 4, "pending_update": True},
-                "decisions": {"last_modified_run": 4, "pending_update": False},
-                "notes": {"last_modified_run": 0, "pending_update": False},
-            }
+            "topic": "topic",
+            "created": "2026-01-28",
+            "current_round": 5,
+            "config": {"stale_threshold": 3},
+            "decisions": [
+                {"name": "D01.md", "last_updated_round": 0}  # Stale
+            ],
+            "notes": [],
         }
         (discuss_dir / "meta.yaml").write_text(yaml.dump(meta))
         
+        # No session means not in discussion mode
         input_data = {"status": "completed"}
         code, stdout, stderr = run_hook(CHECK_PRECIPITATION, input_data, cwd=tmp_path)
         
+        # Should allow without blocking since no session = not in discussion mode
         assert code == 0
-        
-        # Check meta.yaml was updated
-        updated_meta = yaml.safe_load((discuss_dir / "meta.yaml").read_text())
-        assert updated_meta["current_run"] == 6
-        assert updated_meta["file_status"]["outline"]["pending_update"] is False
-        assert updated_meta["file_status"]["outline"]["last_modified_run"] == 5
+        assert stdout.strip() == "{}"

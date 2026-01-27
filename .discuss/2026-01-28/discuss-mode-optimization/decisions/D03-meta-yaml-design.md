@@ -85,15 +85,17 @@ notes:
 
 **Problem**: Hooks are stateless. How to know "same conversation" for round counting?
 
-**Solution**: Temporary session files organized by platform + sessionID
+**Solution**: Temporary session files stored in global directory
 
 ```
-.discuss/.sessions/
+~/.discuss-for-specs/sessions/
 ├── claude-code/
 │   └── {sessionID}.json
 └── cursor/
     └── {sessionID}.json
 ```
+
+> **Note**: Sessions are stored globally (not per-project) because they are temporary and get deleted when conversation ends.
 
 **Session file content**:
 ```json

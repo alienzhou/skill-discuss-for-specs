@@ -152,8 +152,8 @@ export async function install(options = {}) {
     } else {
       ensureDirectory(skillsDir);
       
-      // Copy each skill
-      const skills = ['discuss-coordinator', 'discuss-output'];
+      // Copy each skill (merged into single discuss-mode as per D7)
+      const skills = ['discuss-mode'];
       const installedSkills = [];
       
       for (const skill of skills) {
@@ -263,7 +263,7 @@ export async function uninstall(options = {}) {
     spinner.start();
     
     const skillsDir = getSkillsDir(targetPlatform);
-    const skills = ['discuss-coordinator', 'discuss-output'];
+    const skills = ['discuss-mode'];
     const removedSkills = [];
     
     for (const skill of skills) {

@@ -1,2 +1,9 @@
-# kwaipilot-fix: TEST-Issue-001/tpextid6foog2fsp6iq4
-"""Post-response hooks module."""
+"""
+Post-Response Hooks Package
+
+These hooks have been merged into other hooks:
+- check_stale.py -> merged into hooks/stop/check_precipitation.py
+- update_round.py -> merged into hooks/file-edit/track_file_edit.py
+
+This package is kept for reference but contains no active hooks.
+"""

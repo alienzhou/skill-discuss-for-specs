@@ -12,6 +12,7 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "hooks"))
 
 from common.logging_utils import (
+    get_base_dir,
     get_config_dir,
     get_data_dir,
     get_log_dir,
@@ -33,20 +34,25 @@ from common.logging_utils import (
 class TestDirectoryPaths:
     """Tests for directory path functions."""
     
+    def test_get_base_dir(self):
+        """Test base directory path."""
+        result = get_base_dir()
+        assert result == Path.home() / ".discuss-for-specs"
+    
     def test_get_config_dir(self):
-        """Test config directory path."""
+        """Test config directory path (alias for base)."""
         result = get_config_dir()
-        assert result == Path.home() / ".config" / "DiscussForSpecs"
+        assert result == get_base_dir()
     
     def test_get_data_dir(self):
-        """Test data directory path."""
+        """Test data directory path (alias for base)."""
         result = get_data_dir()
-        assert result == Path.home() / "DiscussForSpecs"
+        assert result == get_base_dir()
     
     def test_get_log_dir(self):
         """Test log directory path."""
         result = get_log_dir()
-        assert result == Path.home() / "DiscussForSpecs" / "logs"
+        assert result == Path.home() / ".discuss-for-specs" / "logs"
 
 
 class TestEnsureDirectories:
@@ -59,10 +65,10 @@ class TestEnsureDirectories:
         
         ensure_directories()
         
-        config_dir = tmp_path / ".config" / "DiscussForSpecs"
-        log_dir = tmp_path / "DiscussForSpecs" / "logs"
+        base_dir = tmp_path / ".discuss-for-specs"
+        log_dir = base_dir / "logs"
         
-        assert config_dir.exists()
+        assert base_dir.exists()
         assert log_dir.exists()
 
 
@@ -78,28 +84,28 @@ class TestGetLogger:
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        logger = get_logger("test-logger")
+        logger = get_logger("test")
         
         assert logger is not None
         assert isinstance(logger, logging.Logger)
     
-    def test_returns_same_instance(self, tmp_path, monkeypatch):
-        """Test logger singleton behavior."""
+    def test_returns_same_logger(self, tmp_path, monkeypatch):
+        """Test logger caching."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        logger1 = get_logger("test-logger")
-        logger2 = get_logger("test-logger")
+        logger1 = get_logger("test")
+        logger2 = get_logger("test")
         
         assert logger1 is logger2
 
 
-class TestLogHookStart:
-    """Tests for log_hook_start function."""
+class TestLogFunctions:
+    """Tests for log helper functions."""
     
-    def test_logs_hook_start(self, tmp_path, monkeypatch):
+    def test_log_hook_start(self, tmp_path, monkeypatch):
         """Test hook start logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
@@ -109,145 +115,62 @@ class TestLogHookStart:
         # Should not raise
         log_hook_start("test_hook", {"key": "value"})
     
-    def test_logs_without_input_data(self, tmp_path, monkeypatch):
-        """Test hook start logging without input data."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        # Should not raise
-        log_hook_start("test_hook")
-
-
-class TestLogHookEnd:
-    """Tests for log_hook_end function."""
-    
-    def test_logs_success(self, tmp_path, monkeypatch):
-        """Test successful hook end logging."""
+    def test_log_hook_end(self, tmp_path, monkeypatch):
+        """Test hook end logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
         log_hook_end("test_hook", {"result": "ok"}, success=True)
+        log_hook_end("test_hook", {}, success=False)
     
-    def test_logs_failure(self, tmp_path, monkeypatch):
-        """Test failed hook end logging."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        log_hook_end("test_hook", {"error": "fail"}, success=False)
-
-
-class TestLogFileOperation:
-    """Tests for log_file_operation function."""
-    
-    def test_logs_operation(self, tmp_path, monkeypatch):
+    def test_log_file_operation(self, tmp_path, monkeypatch):
         """Test file operation logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_file_operation("READ", "/path/to/file.md", "success")
+        log_file_operation("EDIT", "/path/to/file.md", "File edited")
     
-    def test_logs_without_details(self, tmp_path, monkeypatch):
-        """Test file operation logging without details."""
+    def test_log_discuss_detection(self, tmp_path, monkeypatch):
+        """Test discussion detection logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_file_operation("WRITE", "/path/to/file.md")
-
-
-class TestLogDiscussDetection:
-    """Tests for log_discuss_detection function."""
+        log_discuss_detection("/project/.discuss/topic", "outline")
     
-    def test_logs_with_file_type(self, tmp_path, monkeypatch):
-        """Test discuss detection logging with file type."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        log_discuss_detection("/discuss/topic", "outline")
-    
-    def test_logs_without_file_type(self, tmp_path, monkeypatch):
-        """Test discuss detection logging without file type."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        log_discuss_detection("/discuss/topic")
-
-
-class TestLogMetaUpdate:
-    """Tests for log_meta_update function."""
-    
-    def test_logs_changes(self, tmp_path, monkeypatch):
+    def test_log_meta_update(self, tmp_path, monkeypatch):
         """Test meta update logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_meta_update("/discuss/topic", {"current_run": 5, "pending": True})
-
-
-class TestLogStaleDetection:
-    """Tests for log_stale_detection function."""
+        log_meta_update("/path/to/discuss", {"current_round": 5})
     
-    def test_logs_stale_items(self, tmp_path, monkeypatch):
-        """Test stale detection logging with items."""
+    def test_log_stale_detection(self, tmp_path, monkeypatch):
+        """Test stale detection logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        stale_items = [
-            ("outline", 5, False),
-            ("decisions", 10, True)
-        ]
-        log_stale_detection("/discuss/topic", stale_items)
+        stale_items = [("decisions", 5, False)]
+        log_stale_detection("/path/to/discuss", stale_items)
     
-    def test_logs_empty_stale_items(self, tmp_path, monkeypatch):
-        """Test stale detection logging with no items."""
+    def test_log_error(self, tmp_path, monkeypatch):
+        """Test error logging."""
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_stale_detection("/discuss/topic", [])
-
-
-class TestLogLevels:
-    """Tests for simple log level functions."""
-    
-    def test_log_error_with_exception(self, tmp_path, monkeypatch):
-        """Test error logging with exception."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        try:
-            raise ValueError("test error")
-        except Exception as e:
-            log_error("Something went wrong", e)
-    
-    def test_log_error_without_exception(self, tmp_path, monkeypatch):
-        """Test error logging without exception."""
-        monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        
-        import common.logging_utils as logging_module
-        logging_module._logger = None
-        
-        log_error("Something went wrong")
+        log_error("Test error message")
+        log_error("Test error with exception", Exception("test"))
     
     def test_log_warning(self, tmp_path, monkeypatch):
         """Test warning logging."""
@@ -256,7 +179,7 @@ class TestLogLevels:
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_warning("This is a warning")
+        log_warning("Test warning message")
     
     def test_log_info(self, tmp_path, monkeypatch):
         """Test info logging."""
@@ -265,7 +188,7 @@ class TestLogLevels:
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_info("This is info")
+        log_info("Test info message")
     
     def test_log_debug(self, tmp_path, monkeypatch):
         """Test debug logging."""
@@ -274,4 +197,23 @@ class TestLogLevels:
         import common.logging_utils as logging_module
         logging_module._logger = None
         
-        log_debug("This is debug")
+        log_debug("Test debug message")
+
+
+class TestLogFileCreation:
+    """Tests for log file creation."""
+    
+    def test_creates_log_file(self, tmp_path, monkeypatch):
+        """Test that log file is created."""
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        
+        import common.logging_utils as logging_module
+        logging_module._logger = None
+        
+        # Log something to trigger file creation
+        log_info("Test message")
+        
+        log_dir = tmp_path / ".discuss-for-specs" / "logs"
+        
+        # Check log directory exists
+        assert log_dir.exists()

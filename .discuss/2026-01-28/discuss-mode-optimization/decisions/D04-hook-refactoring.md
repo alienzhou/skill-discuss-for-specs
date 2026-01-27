@@ -87,7 +87,7 @@ def get_session_id(hook_input: dict, platform: str) -> str:
     """Extract session ID from hook input"""
 
 def get_session_path(platform: str, session_id: str) -> Path:
-    """Get path: .discuss/.sessions/{platform}/{session_id}.json"""
+    """Get path: ~/.discuss-for-specs/sessions/{platform}/{session_id}.json"""
 
 def load_session(platform: str, session_id: str) -> dict | None:
     """Load session file if exists"""
