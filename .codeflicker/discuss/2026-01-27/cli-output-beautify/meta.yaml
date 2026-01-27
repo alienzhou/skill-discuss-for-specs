@@ -1,0 +1,10 @@
+# 讨论元数据
+topic: "CLI 输出美化方案"
+created: 2026-01-27
+current_round: 1
+
+# 过期检测配置
+max_stale_rounds: 3
+
+# 决策追踪
+decisions: []

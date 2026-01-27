@@ -74,8 +74,15 @@ function buildSkill(skillName, platform) {
   // Read header if exists
   let header = '';
   if (existsSync(headerFile)) {
-    const headerYaml = readFileSync(headerFile, 'utf-8');
-    header = `---\n${headerYaml}---\n\n`;
+    const headerYaml = readFileSync(headerFile, 'utf-8').trim();
+    // Check if header already has frontmatter delimiters
+    if (headerYaml.startsWith('---')) {
+      // Header already has frontmatter, use as-is
+      header = headerYaml + '\n\n';
+    } else {
+      // Add frontmatter delimiters
+      header = `---\n${headerYaml}\n---\n\n`;
+    }
   }
   
   // Combine header and content
