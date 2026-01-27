@@ -104,9 +104,9 @@ Items that were in backlog but have been addressed:
 
 ## References
 
-- [Architecture Design - D7: Skill Merge](./02-architecture-design.md#d7-skill-architecture-merge)
+- [Architecture Design - D7: Skill Merge](./3-architecture.md#d7-skill-architecture-merge)
 - [Discussion: 2026-01-28 Optimization](../.discuss/2026-01-28/discuss-mode-optimization/)
-- [Task List](./03-task-list.md)
+- [Task List](./4-task-list.md)
 
 ---
 

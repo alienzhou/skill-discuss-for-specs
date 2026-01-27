@@ -3,7 +3,7 @@
 > **Created**: 2026-01-19  
 > **Last Updated**: 2026-01-28  
 > **Status**: Confirmed  
-> **Discussion Source**: [Original Discussion](./../.discuss/2026-01-19/spec-kit-evaluation/) | [2026-01-28 Update](./../.discuss/2026-01-28/discuss-mode-optimization/)
+> **Discussion Source**: [Original Discussion](../.discuss/2026-01-19/spec-kit-evaluation/) | [2026-01-28 Update](../.discuss/2026-01-28/discuss-mode-optimization/)
 
 ---
 
@@ -66,6 +66,8 @@ Need to determine the format for distributing discussion capabilities across dif
 
 Use **Skill** as the primary distribution format. Other formats (like Slash Commands) can be secondary, deferred for later implementation.
 
+> 📎 **Original Discussion**: [D01-skill-as-primary-format.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D01-skill-as-primary-format.md)
+
 ---
 
 ### D2: Preserve Header Separation Design
@@ -87,6 +89,8 @@ Preserve the `skills/<name>/headers/<platform>.yaml` separated design.
 2. **Build-time Concatenation**: `headers/<platform>.yaml` + `SKILL.md` → complete file
 3. **Good Extensibility**: Adding a new platform only requires adding the corresponding header file
 
+> 📎 **Original Discussion**: [D02-headers-separation.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D02-headers-separation.md)
+
 ---
 
 ### D3: Adopt Centralized Configuration Management
@@ -97,6 +101,8 @@ Preserve the `skills/<name>/headers/<platform>.yaml` separated design.
 #### Final Decision
 
 Create `config/platforms.yaml` to centrally manage platform information.
+
+> 📎 **Original Discussion**: [D03-centralized-config.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D03-centralized-config.md)
 
 ---
 
@@ -125,6 +131,8 @@ npx discuss-skills platforms
 npx discuss-skills --version
 ```
 
+> 📎 **Original Discussion**: [D04-npm-distribution.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D04-npm-distribution.md)
+
 ---
 
 ### D5: npm Package Design
@@ -138,6 +146,8 @@ npx discuss-skills --version
 - **Language**: Node.js (TypeScript optional)
 - **Dependencies**: Minimized, may only need `commander` or native parsing
 
+> 📎 **Original Discussion**: [D05-npm-package-design.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D05-npm-package-design.md)
+
 ---
 
 ### D6: Pre-built Content in npm Package
@@ -148,6 +158,8 @@ npx discuss-skills --version
 #### Final Decision
 
 Include **pre-built content** in the npm package. The package will contain complete `SKILL.md` files for each platform, generated during the package build/publish process.
+
+> 📎 **Original Discussion**: See [D05-npm-package-design.md](../../.discuss/2026-01-19/spec-kit-evaluation/decisions/D05-npm-package-design.md) (combined with D5)
 
 ---
 
@@ -191,6 +203,8 @@ skills/
 1. Key principles (discussion-first) need to permeate the entire Skill
 2. Templates are only needed at specific moments (creating files)
 3. Separation allows templates to be updated independently
+
+> 📎 **Original Discussion**: [D01-skill-architecture.md](../../.discuss/2026-01-28/discuss-mode-optimization/decisions/D01-skill-architecture.md)
 
 #### Impact on npm Package
 
@@ -242,6 +256,8 @@ Use **`.discuss/YYYY-MM-DD/[topic-slug]/`** as the standardized directory struct
 1. Hidden directory (`.discuss/`) keeps project root clean
 2. Date-based organization helps track discussion chronology
 3. Topic slug provides clear identification
+
+> 📎 **Original Discussion**: [D02-directory-structure.md](../../.discuss/2026-01-28/discuss-mode-optimization/decisions/D02-directory-structure.md)
 
 ---
 
@@ -303,6 +319,8 @@ Temporary session files organized by platform + sessionID:
     └── {sessionID}.json
 ```
 
+> 📎 **Original Discussion**: [D03-meta-yaml-design.md](../../.discuss/2026-01-28/discuss-mode-optimization/decisions/D03-meta-yaml-design.md)
+
 ---
 
 ### D10: Hook Refactoring
@@ -347,6 +365,102 @@ hooks/
 
 ---
 
+### D11: Post-Discussion Guidance
+
+**Decision Time**: 2026-01-28 R8  
+**Status**: ✅ Confirmed
+
+#### Background
+
+After a discussion concludes (all questions resolved/rejected/deferred), the system should guide users toward next steps rather than directly asking if they want to execute.
+
+#### Final Decision
+
+Add a **guidance response template** to the Skill. When discussion is detected as complete, include a response section that:
+
+1. Informs user where discussion artifacts are located
+2. Suggests multiple paths forward
+3. Explains how to leverage the discussion context
+
+#### Guidance Template
+
+```markdown
+## 🎉 Discussion Complete!
+
+Your discussion has been captured. Here's what you can do next:
+
+### 📁 Your Discussion Artifacts
+Location: `.discuss/YYYY-MM-DD/[topic]/`
+
+### 🚀 Recommended Next Steps
+- **Option 1**: Generate Technical Specs (use SDD tools)
+- **Option 2**: Create Execution Plan (switch to Plan mode)
+- **Option 3**: Direct Execution (reference decisions as needed)
+- **Option 4**: Archive for Later
+```
+
+#### Key Principles
+
+1. **Boundary Clarity**: Discussion responsibility ends here; guide but don't implement downstream
+2. **Tool Agnostic**: Suggest categories of tools, not specific products
+3. **Context Emphasis**: Always tell users where files are and how to reference them
+4. **No Lock-in**: Users can use any SDD tool or planning approach
+
+> 📎 **Original Discussion**: [D05-post-discussion-guidance.md](../../.discuss/2026-01-28/discuss-mode-optimization/decisions/D05-post-discussion-guidance.md)
+
+---
+
+### D12: Response Depth Enhancement
+
+**Decision Time**: 2026-01-28 R10-R11  
+**Status**: ✅ Confirmed
+
+#### Background
+
+User feedback indicated that responses in discussion mode were too simple, lacking:
+- Solution analysis when presenting options
+- Trade-off explanations
+- Relevant experience and case references
+
+#### Final Decision
+
+Add three key elements to improve discussion depth:
+
+#### 1. Three Roles
+
+| Role | Function | Example |
+|------|----------|---------|
+| **Socratic Questioner** | Clarify ideas through questioning | "You mentioned X, could you elaborate?" |
+| **Devil's Advocate** | Challenge assumptions | "Are you sure this is the only solution?" |
+| **Knowledge Connector** | Link related concepts | "This reminds me of the X pattern..." |
+
+> The Devil's Advocate role is essential for depth - it prevents the agent from simply agreeing with everything.
+
+#### 2. Problem Type Differentiation
+
+| Problem Type | Strategy |
+|--------------|----------|
+| Factual | Answer directly |
+| Design/Decision | Guide thinking, analyze tradeoffs |
+| Open-ended | Challenge assumptions, explore alternatives |
+
+#### 3. Discussion-First Principle
+
+When user says "帮我写..." or "Generate...":
+- ❌ Don't output multiple versions immediately
+- ✅ Ask clarifying questions first
+- ✅ Understand intent before producing output
+
+#### Rationale
+
+1. Role-based thinking provides clear behavioral guidance
+2. Problem type differentiation prevents one-size-fits-all responses
+3. Discussion-first prevents wasted rounds of guessing
+
+> 📎 **Original Discussion**: [D06-response-depth.md](../../.discuss/2026-01-28/discuss-mode-optimization/decisions/D06-response-depth.md)
+
+---
+
 ## 4. Platform Header Templates
 
 ### 4.1 Claude Code (`headers/claude-code.yaml`)
@@ -386,10 +500,10 @@ alwaysApply: false
 
 ## 6. References
 
-- [Technical Research](./01-technical-research.md)
+- [Technical Research](./2-technical-research.md)
 - [spec-kit Project](https://github.com/spec-kit/spec-kit)
-- [Original Discussion Records](./../.discuss/2026-01-19/spec-kit-evaluation/)
-- [2026-01-28 Update Discussion](./../.discuss/2026-01-28/discuss-mode-optimization/)
+- [Original Discussion Records](../.discuss/2026-01-19/spec-kit-evaluation/)
+- [2026-01-28 Update Discussion](../.discuss/2026-01-28/discuss-mode-optimization/)
 
 ---
 

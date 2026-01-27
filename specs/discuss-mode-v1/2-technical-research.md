@@ -13,7 +13,7 @@
 The `skill-discuss-for-specs` project needs to distribute discussion capabilities across different AI coding assistant platforms. Before designing the distribution architecture, we need to understand the Skills/Rules mechanisms supported by each platform.
 
 > **Note (2026-01-28)**: The original design mentioned `discuss-coordinator` and `discuss-output` as two separate Skills. 
-> These have been merged into a single `discuss-mode` Skill. See [Architecture Decision D7](./02-architecture-design.md#d7-skill-architecture-merge).
+> These have been merged into a single `discuss-mode` Skill. See [Architecture Decision D7](./3-architecture.md#d7-skill-architecture-merge).
 
 ### 1.2 Research Objectives
 
