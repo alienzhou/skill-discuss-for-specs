@@ -205,17 +205,17 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 **Option 1: Use npx (no install needed)**
 ```bash
 # One-command install (auto-detects platform)
-npx discuss-for-specs install
+npx @vibe-x/discuss-for-specs install
 
 # Or specify platform explicitly
-npx discuss-for-specs install --platform cursor
-npx discuss-for-specs install --platform claude-code
+npx @vibe-x/discuss-for-specs install --platform cursor
+npx @vibe-x/discuss-for-specs install --platform claude-code
 ```
 
 **Option 2: Global install (recommended for frequent use)**
 ```bash
 # Install globally
-npm install -g discuss-for-specs
+npm install -g @vibe-x/discuss-for-specs
 
 # Then use directly
 discuss-for-specs install --platform claude-code
@@ -239,7 +239,7 @@ The Agent will guide you through a structured conversation, tracking decisions a
 
 ```bash
 discuss-for-specs uninstall --platform cursor
-# or: npx discuss-for-specs uninstall --platform cursor
+# or: npx @vibe-x/discuss-for-specs uninstall --platform cursor
 ```
 
 ---
@@ -308,14 +308,14 @@ cd .. && python -m pytest tests/
 
 ```bash
 # List supported platforms
-npx discuss-for-specs platforms
+npx @vibe-x/discuss-for-specs platforms
 
 # Install with options
-npx discuss-for-specs install --platform cursor --skip-hooks
-npx discuss-for-specs install --platform claude-code --skip-skills
+npx @vibe-x/discuss-for-specs install --platform cursor --skip-hooks
+npx @vibe-x/discuss-for-specs install --platform claude-code --skip-skills
 
 # Uninstall
-npx discuss-for-specs uninstall --platform cursor
+npx @vibe-x/discuss-for-specs uninstall --platform cursor
 ```
 
 ---

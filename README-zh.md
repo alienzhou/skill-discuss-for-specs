@@ -203,17 +203,17 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 **方式一：使用 npx（无需安装）**
 ```bash
 # 一键安装（自动检测平台）
-npx discuss-for-specs install
+npx @vibe-x/discuss-for-specs install
 
 # 或指定平台
-npx discuss-for-specs install --platform cursor
-npx discuss-for-specs install --platform claude-code
+npx @vibe-x/discuss-for-specs install --platform cursor
+npx @vibe-x/discuss-for-specs install --platform claude-code
 ```
 
 **方式二：全局安装（推荐经常使用的用户）**
 ```bash
 # 全局安装
-npm install -g discuss-for-specs
+npm install -g @vibe-x/discuss-for-specs
 
 # 然后直接使用
 discuss-for-specs install --platform claude-code
@@ -237,7 +237,7 @@ Agent 将引导你进行结构化对话，自动追踪决策和进度。
 
 ```bash
 discuss-for-specs uninstall --platform cursor
-# 或: npx discuss-for-specs uninstall --platform cursor
+# 或: npx @vibe-x/discuss-for-specs uninstall --platform cursor
 ```
 
 ---
@@ -305,14 +305,14 @@ cd .. && python -m pytest tests/
 
 ```bash
 # 列出支持的平台
-npx discuss-for-specs platforms
+npx @vibe-x/discuss-for-specs platforms
 
 # 带选项安装
-npx discuss-for-specs install --platform cursor --skip-hooks
-npx discuss-for-specs install --platform claude-code --skip-skills
+npx @vibe-x/discuss-for-specs install --platform cursor --skip-hooks
+npx @vibe-x/discuss-for-specs install --platform claude-code --skip-skills
 
 # 卸载
-npx discuss-for-specs uninstall --platform cursor
+npx @vibe-x/discuss-for-specs uninstall --platform cursor
 ```
 
 ---
