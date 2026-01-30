@@ -11,11 +11,11 @@ Log Format Design (Concurrent-Safe):
 - Format: TIME | LEVEL | [hook:exec_id] message
 
 Example log output:
-  22:13:29 | INFO     | [track_file_edit:a3f2] START cwd=/path/to/project
-  22:13:29 | INFO     | [track_file_edit:a3f2] platform=claude_code session=abc123
-  22:13:29 | INFO     | [track_file_edit:a3f2] >> Detected: .discuss/2026-01-28/topic (outline)
-  22:13:29 | INFO     | [track_file_edit:a3f2] >> Round: 5 -> 6
-  22:13:29 | INFO     | [track_file_edit:a3f2] END [OK]
+  22:13:29 | INFO     | [check_precipitation:a3f2] START cwd=/path/to/project
+  22:13:29 | INFO     | [check_precipitation:a3f2] platform=claude_code
+  22:13:29 | INFO     | [check_precipitation:a3f2] >> Checking discussions for precipitation
+  22:13:29 | INFO     | [check_precipitation:a3f2] >> Stale items: 1 found
+  22:13:29 | INFO     | [check_precipitation:a3f2] END [OK]
 """
 
 import logging
@@ -129,7 +129,7 @@ def log_hook_start(hook_name: str, input_data: dict = None) -> None:
     Log hook start with input data.
     
     Args:
-        hook_name: Name of the hook (e.g., "track_file_edit", "check_precipitation")
+        hook_name: Name of the hook (e.g., "check_precipitation")
         input_data: Input JSON data received from stdin
     """
     global _current_hook_name, _current_exec_id, _current_hook_actions

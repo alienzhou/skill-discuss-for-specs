@@ -90,19 +90,27 @@ export function getSettingsPath(platformId) {
 }
 
 /**
+ * Check if platform supports stop hook (L2 capability)
+ * 
+ * Currently all supported platforms (claude-code, cursor) support stop hook.
+ * L1 platforms (without stop hook) will be added in the future.
+ * 
+ * @param {string} platformId - Platform ID
+ * @returns {boolean} True if platform supports stop hook
+ */
+export function platformSupportsStopHook(platformId) {
+  // Currently all supported platforms are L2 (support stop hook)
+  // Future L1 platforms (kilocode, codex-cli, etc.) will return false
+  return platformId === 'claude-code' || platformId === 'cursor';
+}
+
+/**
  * Generate hooks configuration for Claude Code
  */
 function generateClaudeCodeHooksConfig() {
   const hooksDir = getHooksDir();
   
   return {
-    PostToolUse: [{
-      matcher: "Edit|Write|MultiEdit",
-      hooks: [{
-        type: "command",
-        command: `python3 ${join(hooksDir, 'file-edit', 'track_file_edit.py')}`
-      }]
-    }],
     Stop: [{
       matcher: "",
       hooks: [{
@@ -122,9 +130,6 @@ function generateCursorHooksConfig() {
   return {
     version: 1,
     hooks: {
-      afterFileEdit: [{
-        command: `python3 ${join(hooksDir, 'file-edit', 'track_file_edit.py')}`
-      }],
       stop: [{
         command: `python3 ${join(hooksDir, 'stop', 'check_precipitation.py')}`
       }]
@@ -206,7 +211,7 @@ export function removeHooksConfig(platformId) {
       
       if (settings.hooks) {
         // Remove our specific hooks (those containing discuss-for-specs)
-        for (const hookType of ['PostToolUse', 'Stop']) {
+        for (const hookType of ['Stop']) {
           if (settings.hooks[hookType]) {
             settings.hooks[hookType] = settings.hooks[hookType].filter(
               h => !JSON.stringify(h).includes('discuss-for-specs')
@@ -229,7 +234,7 @@ export function removeHooksConfig(platformId) {
       const hooksConfig = JSON.parse(readFileSync(settingsPath, 'utf-8'));
       
       if (hooksConfig.hooks) {
-        for (const hookType of ['afterFileEdit', 'stop']) {
+        for (const hookType of ['stop']) {
           if (hooksConfig.hooks[hookType]) {
             hooksConfig.hooks[hookType] = hooksConfig.hooks[hookType].filter(
               h => !h.command?.includes('discuss-for-specs')

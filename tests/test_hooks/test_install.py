@@ -1,5 +1,7 @@
 """
 Tests for hooks/install.py
+
+NOTE: Since D01 decision, only stop hook is used (file-edit hook removed).
 """
 
 import pytest
@@ -113,7 +115,6 @@ class TestCopyHooksToInstallDir:
         
         assert result.exists()
         assert (result / "common").exists()
-        assert (result / "file-edit").exists()
         assert (result / "stop").exists()
     
     def test_copies_scripts(self, tmp_path, monkeypatch):
@@ -122,7 +123,6 @@ class TestCopyHooksToInstallDir:
         
         result = copy_hooks_to_install_dir("claude")
         
-        assert (result / "file-edit" / "track_file_edit.py").exists()
         assert (result / "stop" / "check_precipitation.py").exists()
     
     def test_copies_common_modules(self, tmp_path, monkeypatch):
@@ -151,7 +151,6 @@ class TestInstallClaudeHooks:
         
         settings = json.loads(settings_path.read_text())
         assert "hooks" in settings
-        assert "PostToolUse" in settings["hooks"]
         assert "Stop" in settings["hooks"]
     
     def test_updates_existing_settings(self, tmp_path, monkeypatch, capsys):
@@ -179,8 +178,8 @@ class TestInstallClaudeHooks:
         install_claude_hooks()
         
         settings = json.loads((tmp_path / ".claude" / "settings.json").read_text())
-        # Should only have one PostToolUse hook
-        assert len(settings["hooks"]["PostToolUse"]) == 1
+        # Should only have one Stop hook
+        assert len(settings["hooks"]["Stop"]) == 1
 
 
 class TestInstallCursorHooks:
@@ -198,7 +197,6 @@ class TestInstallCursorHooks:
         
         config = json.loads(hooks_path.read_text())
         assert "hooks" in config
-        assert "afterFileEdit" in config["hooks"]
         assert "stop" in config["hooks"]
     
     def test_idempotent(self, tmp_path, monkeypatch, capsys):
@@ -210,7 +208,7 @@ class TestInstallCursorHooks:
         install_cursor_hooks()
         
         config = json.loads((tmp_path / ".cursor" / "hooks.json").read_text())
-        assert len(config["hooks"]["afterFileEdit"]) == 1
+        assert len(config["hooks"]["stop"]) == 1
 
 
 class TestUninstallClaudeHooks:
@@ -226,14 +224,13 @@ class TestUninstallClaudeHooks:
         
         # Verify installed
         settings = json.loads((tmp_path / ".claude" / "settings.json").read_text())
-        assert len(settings["hooks"]["PostToolUse"]) > 0
+        assert len(settings["hooks"]["Stop"]) > 0
         
         # Uninstall
         uninstall_claude_hooks()
         
         # Verify removed
         settings = json.loads((tmp_path / ".claude" / "settings.json").read_text())
-        assert len(settings["hooks"]["PostToolUse"]) == 0
         assert len(settings["hooks"]["Stop"]) == 0
     
     def test_removes_install_directory(self, tmp_path, monkeypatch, capsys):
@@ -261,7 +258,6 @@ class TestUninstallCursorHooks:
         uninstall_cursor_hooks()
         
         config = json.loads((tmp_path / ".cursor" / "hooks.json").read_text())
-        assert len(config["hooks"]["afterFileEdit"]) == 0
         assert len(config["hooks"]["stop"]) == 0
     
     def test_removes_install_directory(self, tmp_path, monkeypatch, capsys):

@@ -1,0 +1,22 @@
+version: 1
+config:
+  stale_threshold: 3
+discussions:
+  2026-01-30/multi-agent-platform-support:
+    outline:
+      mtime: 1769786715.1354702
+      change_count: 0
+    decisions:
+    - name: D04-snapshot-parameters.md
+      mtime: 1769786472.1660347
+    - name: D05-l1-skill-guidance.md
+      mtime: 1769786951.8482633
+    - name: D03-two-level-architecture.md
+      mtime: 1769786462.5864232
+    - name: D02-remove-meta-yaml.md
+      mtime: 1769786453.9830067
+    - name: D01-snapshot-based-detection.md
+      mtime: 1769786446.4101262
+    notes:
+    - name: platform-research.md
+      mtime: 1769786524.0281587

@@ -48,17 +48,21 @@ def detect_platform(input_data: Dict[str, Any]) -> Platform:
     if input_data is None:
         return Platform.UNKNOWN
     
-    # Claude Code has specific fields
-    if "tool_name" in input_data or "hook_event_name" in input_data:
-        return Platform.CLAUDE_CODE
+    # Cursor: has cursor_version field (most reliable indicator)
+    if "cursor_version" in input_data:
+        return Platform.CURSOR
     
-    # Cursor has file_path at top level for afterFileEdit
+    # Cursor: has file_path at top level for afterFileEdit (without tool_input)
     if "file_path" in input_data and "tool_input" not in input_data:
         return Platform.CURSOR
     
-    # Cursor stop hook has status field
+    # Cursor: stop hook has status field with "completed"
     if "status" in input_data and "completed" in str(input_data.get("status", "")):
         return Platform.CURSOR
+    
+    # Claude Code: has tool_name or hook_event_name (but not cursor_version)
+    if "tool_name" in input_data or "hook_event_name" in input_data:
+        return Platform.CLAUDE_CODE
     
     return Platform.UNKNOWN
 

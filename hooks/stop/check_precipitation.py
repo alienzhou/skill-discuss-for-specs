@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Hook 2: Precipitation Check
+Hook: Precipitation Check (Snapshot-based)
 
 This hook is triggered when AI conversation ends and checks if discussion
-files need to be updated (precipitated).
+files need to be updated (precipitated) using snapshot comparison.
 
 Behavior:
-- Only checks if outline was updated in current session (discussion mode detection)
-- Uses round-based staleness (current_round - last_updated_round > threshold)
-- Cleans up session file after processing
+- Compares current file state with last saved snapshot
+- Detects when outline changed but decisions/notes didn't update
+- Triggers reminder when change_count >= threshold
 
 Trigger:
 - Claude Code: Stop hook
@@ -25,11 +25,12 @@ Output (stdout JSON):
 
 Workflow:
 1. Check if stop_hook_active is true (prevent infinite loop)
-2. Check if outline was updated in this session (discussion mode detection)
-3. If not in discussion mode, skip all checks
-4. For discussions with outline updates, check staleness of decisions/notes
-5. Emit reminder if staleness threshold exceeded
-6. Clean up session file
+2. Load snapshot from .discuss/.snapshot.yaml
+3. Find active discussions (modified within 24h)
+4. Compare each discussion's state with snapshot
+5. Update snapshot with new state
+6. Emit reminder if change_count >= threshold
+7. Save snapshot
 """
 
 import os
@@ -51,9 +52,6 @@ from common.logging_utils import (
     log_stale_detection,
     log_warning,
 )
-from common.meta_parser import (
-    load_meta,
-)
 from common.platform_utils import (
     Platform,
     allow_and_exit,
@@ -62,18 +60,18 @@ from common.platform_utils import (
     is_stop_hook_active,
     read_stdin_json,
 )
-from common.session_manager import (
-    delete_session,
-    get_session_id,
-    get_updated_outline_paths,
-    is_in_discussion_mode,
+from common.snapshot_manager import (
+    cleanup_deleted_discussions,
+    compare_and_update,
+    find_active_discussions,
+    get_discuss_key,
+    load_snapshot,
+    save_snapshot,
+    scan_discussion,
 )
 
 
 HOOK_NAME = "check_precipitation"
-
-# Default staleness threshold (rounds without update before reminding)
-DEFAULT_STALE_THRESHOLD = 3
 
 
 def get_workspace_root() -> Path:
@@ -94,106 +92,41 @@ def get_workspace_root() -> Path:
     return Path.cwd()
 
 
-def find_discuss_root_from_outline(outline_path: str) -> Path:
-    """
-    Find discussion root from an outline path.
-    
-    Args:
-        outline_path: Path to outline.md file
-        
-    Returns:
-        Path to discussion root directory
-    """
-    return Path(outline_path).parent
-
-
-def check_staleness(meta: dict, discuss_path: str) -> List[Tuple[str, str, int]]:
-    """
-    Check for stale files based on round difference.
-    
-    Args:
-        meta: Meta dictionary
-        discuss_path: Path to discussion directory
-        
-    Returns:
-        List of (file_type, file_name, stale_rounds) tuples for stale items
-    """
-    current_round = meta.get("current_round", 0)
-    config = meta.get("config", {})
-    threshold = config.get("stale_threshold", DEFAULT_STALE_THRESHOLD)
-    
-    stale_items = []
-    
-    # Check decisions array (new schema)
-    for decision in meta.get("decisions", []):
-        last_updated = decision.get("last_updated_round", 0)
-        stale_rounds = current_round - last_updated
-        if stale_rounds >= threshold:
-            stale_items.append(("decisions", decision.get("name", "unknown"), stale_rounds))
-    
-    # Check notes array (new schema)
-    for note in meta.get("notes", []):
-        last_updated = note.get("last_updated_round", 0)
-        stale_rounds = current_round - last_updated
-        if stale_rounds >= threshold:
-            stale_items.append(("notes", note.get("name", "unknown"), stale_rounds))
-    
-    # Backward compatibility: check file_status (old schema)
-    file_status = meta.get("file_status", {})
-    
-    # Check if we have the old schema and no entries found yet
-    if not stale_items:
-        for file_type in ["decisions", "notes"]:
-            status = file_status.get(file_type, {})
-            last_modified_run = status.get("last_modified_run", 0)
-            stale_runs = current_round - last_modified_run
-            
-            # Only report if there was supposed to be content
-            # (decisions should always exist in a proper discussion)
-            if file_type == "decisions" and stale_runs >= threshold:
-                stale_items.append((file_type, "directory", stale_runs))
-    
-    return stale_items
-
-
 def format_stale_reminder(
-    stale_items: List[Tuple[str, str, int]], 
-    discuss_path: str,
+    discuss_key: str,
+    change_count: int,
+    threshold: int,
     is_force: bool = False
 ) -> str:
     """
-    Format a reminder message for stale items.
+    Format a reminder message for stale discussion.
     
     Args:
-        stale_items: List of (file_type, file_name, stale_rounds) tuples
-        discuss_path: Path to discussion directory
+        discuss_key: Discussion key (e.g., "2026-01-30/topic-name")
+        change_count: Current change_count value
+        threshold: Staleness threshold
         is_force: Whether this is a force update (exceeded force threshold)
         
     Returns:
         Formatted reminder message
     """
-    if not stale_items:
-        return ""
-    
     if is_force:
         header = "## ⚠️ Precipitation Required\n\n"
-        header += "The following discussion files have not been updated for too long:\n\n"
+        header += "The discussion outline has been updated multiple times, but decisions/notes haven't been updated:\n\n"
     else:
         header = "## 💡 Precipitation Suggestion\n\n"
-        header += "The following discussion files may need updating:\n\n"
+        header += "The discussion outline has been updated, but decisions/notes may need updating:\n\n"
     
-    items_text = ""
-    for file_type, file_name, stale_rounds in stale_items:
-        status = "[REQUIRED]" if is_force else "[Suggested]"
-        items_text += f"- {status} `{file_type}/{file_name}` - {stale_rounds} rounds since last update\n"
+    items_text = f"- Discussion: `{discuss_key}`\n"
+    items_text += f"- Outline changes without updates: {change_count} (threshold: {threshold})\n"
     
-    footer = f"\n📁 Discussion: `{discuss_path}`\n"
+    footer = f"\n📁 Discussion: `.discuss/{discuss_key}`\n"
     
     if is_force:
         footer += "\n**Please update the discussion files before continuing.**\n"
         footer += "This ensures important decisions are properly documented.\n"
     else:
-        footer += "\nWould you like me to help update these files?\n"
+        footer += "\nWould you like me to help update the decisions/notes?\n"
         footer += "This helps maintain a complete record of our discussion.\n"
     
     return header + items_text + footer
@@ -203,7 +136,6 @@ def main():
     """Main entry point for the precipitation check hook."""
     input_data = None
     platform = Platform.UNKNOWN
-    session_id = None
     
     try:
         # Read input from stdin
@@ -214,73 +146,77 @@ def main():
         platform = detect_platform(input_data) if input_data else Platform.UNKNOWN
         log_info(f"Detected platform: {platform.value}")
         
-        # Get session ID
-        session_id = get_session_id(input_data, platform.value) if input_data else None
-        log_debug(f"Session ID: {session_id}")
-        
         # Check if this is a continuation after stop hook already triggered
         if input_data and is_stop_hook_active(input_data):
             log_skip("stop_hook_active is True, bypassing check")
-            # Clean up session even when bypassing
-            if session_id:
-                delete_session(platform.value, session_id)
             log_hook_end(HOOK_NAME, {}, success=True)
             allow_and_exit()
         
-        # NEW: Check if user is in discussion mode (outline was updated)
-        if not session_id or not is_in_discussion_mode(platform.value, session_id):
-            log_skip("Not in discussion mode (no outline updates)")
-            # Clean up session if exists
-            if session_id:
-                delete_session(platform.value, session_id)
+        # Get workspace root
+        workspace_root = get_workspace_root()
+        log_debug(f"Workspace root: {workspace_root}")
+        
+        # Get .discuss directory
+        discuss_root = workspace_root / ".discuss"
+        
+        if not discuss_root.exists():
+            log_skip("No .discuss directory found")
             log_hook_end(HOOK_NAME, {}, success=True)
             allow_and_exit()
         
-        log_action("Discussion mode detected")
+        log_action("Checking discussions for precipitation")
         
-        # Get outline paths updated in this session
-        outline_paths = get_updated_outline_paths(platform.value, session_id)
-        log_debug(f"Updated outlines: {outline_paths}")
+        # Load snapshot
+        snapshot = load_snapshot(discuss_root)
+        threshold = snapshot.get("config", {}).get("stale_threshold", 3)
+        force_threshold = threshold * 2  # Force at 2x the suggest threshold
         
-        if not outline_paths:
-            log_skip("No outline paths recorded")
-            if session_id:
-                delete_session(platform.value, session_id)
+        # Find active discussions (modified within 24h)
+        active_discussions = find_active_discussions(discuss_root, hours=24)
+        log_debug(f"Found {len(active_discussions)} active discussion(s)")
+        
+        if not active_discussions:
+            log_skip("No active discussions found")
             log_hook_end(HOOK_NAME, {}, success=True)
             allow_and_exit()
         
         # Check each discussion for staleness
         stale_reminders = []
         
-        for outline_path in outline_paths:
-            discuss_root = find_discuss_root_from_outline(outline_path)
-            log_debug(f"Checking discussion: {discuss_root}")
+        for discuss_dir in active_discussions:
+            discuss_key = get_discuss_key(discuss_dir, discuss_root)
+            log_debug(f"Checking discussion: {discuss_key}")
             
-            meta = load_meta(str(discuss_root))
+            # Get old state from snapshot
+            old_state = snapshot.get("discussions", {}).get(discuss_key, {})
             
-            if meta is None:
-                log_debug(f"No meta.yaml found in {discuss_root}, skipping")
-                continue
+            # Scan current state
+            new_state = scan_discussion(discuss_dir)
             
-            # Check for stale items
-            stale_items = check_staleness(meta, str(discuss_root))
-            log_stale_detection(str(discuss_root), [(t, r, False) for t, _, r in stale_items])
+            # Compare and update change_count
+            change_count = compare_and_update(old_state, new_state)
             
-            if stale_items:
-                # Check if any are force-level (exceed double threshold)
-                config = meta.get("config", {})
-                threshold = config.get("stale_threshold", DEFAULT_STALE_THRESHOLD)
-                force_threshold = threshold * 2  # Force at 2x the suggest threshold
-                
-                is_force = any(rounds >= force_threshold for _, _, rounds in stale_items)
-                
-                reminder = format_stale_reminder(stale_items, str(discuss_root), is_force)
+            # Update snapshot with new state
+            if "discussions" not in snapshot:
+                snapshot["discussions"] = {}
+            snapshot["discussions"][discuss_key] = new_state
+            
+            # Check if reminder is needed
+            if change_count >= threshold:
+                is_force = change_count >= force_threshold
+                reminder = format_stale_reminder(discuss_key, change_count, threshold, is_force)
                 stale_reminders.append((reminder, is_force))
+                
+                log_stale_detection(
+                    str(discuss_dir),
+                    [("outline", change_count, is_force)]
+                )
         
-        # Clean up session file
-        if session_id:
-            delete_session(platform.value, session_id)
-            log_debug("Cleaned up session file")
+        # Clean up deleted discussions
+        cleanup_deleted_discussions(snapshot, discuss_root)
+        
+        # Save snapshot
+        save_snapshot(discuss_root, snapshot)
         
         # Summary logging
         log_info(f"Stale reminders: {len(stale_reminders)}")
@@ -299,8 +235,6 @@ def main():
             else:
                 # Suggest but don't block for non-force reminders
                 log_action(f"Suggesting update: {len(stale_reminders)} stale item(s)")
-                # For suggestions, we still allow but include the message
-                # This depends on platform support - for now, we block with suggestion
                 log_hook_end(HOOK_NAME, {"action": "suggest"}, success=True)
                 block_and_exit(combined_reminder, platform)
         
@@ -311,12 +245,6 @@ def main():
     except Exception as e:
         log_error(f"Unexpected error in {HOOK_NAME}", e)
         log_hook_end(HOOK_NAME, {}, success=False)
-        # Clean up session even on error
-        if session_id and platform:
-            try:
-                delete_session(platform.value, session_id)
-            except Exception:
-                pass
         # Still allow operation to continue even on error
         allow_and_exit()
 

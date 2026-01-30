@@ -32,13 +32,12 @@ def find_discuss_root(current_path: str) -> Optional[Path]:
     Find discussion root directory.
     
     Recognition rules (checks in order, returns on first match):
-    1. Contains meta.yaml (existing discussions with metadata)
-    2. Contains outline.md (new discussions without meta yet)
-    3. Path matches .discuss/YYYY-MM-DD/[topic]/ pattern (structural match)
+    1. Contains outline.md (primary indicator)
+    2. Path matches .discuss/YYYY-MM-DD/[topic]/ pattern (structural match)
+    3. Contains meta.yaml (backward compatibility with old discussions)
     
-    This approach solves the "chicken-and-egg" problem where meta.yaml
-    needs to be created by the hook, but the hook couldn't find the
-    discuss root without meta.yaml existing first.
+    Note: meta.yaml is no longer used in new discussions (see D02 decision),
+    but we still check for it to support old discussion directories.
     
     Args:
         current_path: Starting path to search from
@@ -50,18 +49,18 @@ def find_discuss_root(current_path: str) -> Optional[Path]:
     
     # Search upward through parent directories
     for parent in [p] + list(p.parents):
-        # Rule 1: Has meta.yaml (existing discussions)
-        if (parent / "meta.yaml").exists():
-            return parent
-        
-        # Rule 2: Has outline.md (new discussions without meta yet)
+        # Rule 1: Has outline.md (primary indicator)
         if (parent / "outline.md").exists():
             return parent
         
-        # Rule 3: Path matches .discuss/YYYY-MM-DD/topic pattern
+        # Rule 2: Path matches .discuss/YYYY-MM-DD/topic pattern
         # This handles the case where outline.md is being created
         path_str = str(parent)
         if DISCUSS_DIR_PATTERN.search(path_str):
+            return parent
+        
+        # Rule 3: Has meta.yaml (backward compatibility)
+        if (parent / "meta.yaml").exists():
             return parent
     
     return None

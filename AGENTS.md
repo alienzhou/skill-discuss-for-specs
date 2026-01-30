@@ -11,7 +11,7 @@ This document provides guidance for AI agents working on this project.
 > **Intelligence work for Agent, process work for Hook**
 
 - **Agent** (AI) focuses on: Understanding problems, analyzing solutions, guiding discussions, recognizing consensus
-- **Hook** (Scripts) handles: Round counting, state checking, reminders, file operations
+- **Hook** (Scripts) handles: State detection, change tracking, reminders
 
 ## 🏗️ Architecture
 
@@ -28,8 +28,7 @@ skill-discuss-for-specs/
 ├── skills/              # 📝 Markdown instructions for AI
 │   └── discuss-for-specs/          # Unified discussion skill
 ├── hooks/               # ⚡ Python automation scripts
-│   ├── file-edit/           # File edit tracking
-│   ├── stop/                # Precipitation checks
+│   ├── stop/                # Precipitation checks (snapshot-based)
 │   └── common/              # Shared utilities
 ├── platforms/           # 🔌 Platform-specific adaptations
 ├── config/              # ⚙️ Configuration files
@@ -52,9 +51,13 @@ This project provides discussion facilitation capabilities through a single unif
 ```
 .discuss/YYYY-MM-DD/[topic]/
 ├── outline.md          # Discussion outline
-├── meta.yaml           # Metadata (see schema below)
 ├── decisions/          # Decision documents
 └── notes/              # Reference materials
+```
+
+**Snapshot file** (managed by hooks):
+```
+.discuss/.snapshot.yaml  # Tracks discussion state changes
 ```
 
 **File naming conventions**:
@@ -65,7 +68,6 @@ This project provides discussion facilitation capabilities through a single unif
 
 Templates for new discussions are in `templates/`:
 - `outline.md` - Outline template
-- `meta.yaml` - Metadata template
 
 ## 📁 Important Files
 
@@ -73,11 +75,10 @@ Templates for new discussions are in `templates/`:
 |------|---------|
 | `skills/discuss-for-specs/SKILL.md` | Unified discussion skill instructions |
 | `config/default.yaml` | Default configuration |
-| `hooks/stop/check_precipitation.py` | Decision precipitation detection |
-| `hooks/file-edit/track_file_edit.py` | File edit tracking |
-| `hooks/common/session_manager.py` | Session state management |
+| `hooks/stop/check_precipitation.py` | Decision precipitation detection (snapshot-based) |
+| `hooks/common/snapshot_manager.py` | Snapshot state management |
 | `.discuss/*/outline.md` | Active discussion outlines |
-| `.discuss/*/meta.yaml` | Discussion metadata |
+| `.discuss/.snapshot.yaml` | Discussion state tracking |
 
 ## 🔧 Development Guidelines
 
@@ -98,26 +99,27 @@ Templates for new discussions are in `templates/`:
 python -m pytest tests/
 ```
 
-## 📊 meta.yaml Schema
+## 📊 .snapshot.yaml Schema
 
-Reference for understanding/parsing discussion metadata:
+Reference for understanding discussion state tracking:
 
 ```yaml
-# Discussion metadata
-topic: "Topic Name"
-created: YYYY-MM-DD
-current_round: N
+# .discuss/.snapshot.yaml
+version: 1
+config:
+  stale_threshold: 3        # Trigger reminder after N outline changes
 
-# Staleness configuration
-max_stale_rounds: 3
-
-# Decision tracking
-decisions:
-  - id: D1
-    title: "Decision Title"
-    status: confirmed | rejected
-    confirmed_at: N
-    doc_path: null | "decisions/DXX-xxx.md"
+discussions:
+  "2026-01-30/topic-name":
+    outline:
+      mtime: 1706621400.0   # Unix timestamp
+      change_count: 2       # Outline changes without decision updates
+    decisions:
+      - name: "D01-xxx.md"
+        mtime: 1706620000.0
+    notes:
+      - name: "analysis.md"
+        mtime: 1706619000.0
 ```
 
 ## 🔨 Development Workflows
@@ -139,13 +141,11 @@ Skills are pure Markdown instructions. To modify behavior:
 ### Hooks Development
 
 Hooks are Python scripts that run at specific lifecycle events:
-- `file-edit/`: Triggered when files are edited
-- `stop/`: Triggered when AI response completes
+- `stop/`: Triggered when AI response completes (snapshot-based detection)
 - `common/`: Shared utilities
 
 **Key modules in `common/`**:
-- `session_manager.py`: Session state management
-- `meta_parser.py`: Parse and manipulate meta.yaml
+- `snapshot_manager.py`: Snapshot state management
 - `file_utils.py`: File operations helpers
 - `logging_utils.py`: Centralized logging utilities
 - `platform_utils.py`: Platform detection and adaptation
@@ -153,19 +153,18 @@ Hooks are Python scripts that run at specific lifecycle events:
 ## ⚠️ Development Pitfalls
 
 1. **Don't put usage instructions in AGENTS.md** - That belongs in SKILL.md
-2. **Don't forget to update meta.yaml schema** - When adding new fields
-3. **Don't modify Skills without testing** - Test with actual discussions first
-4. **Don't break cross-platform compatibility** - Test build scripts for all platforms
-5. **Keep hooks simple** - Complex logic should be in dedicated modules
+2. **Don't modify Skills without testing** - Test with actual discussions first
+3. **Don't break cross-platform compatibility** - Test build scripts for all platforms
+4. **Keep hooks simple** - Complex logic should be in dedicated modules
 
 ## 🔗 Related Resources
 
 - [Architecture Design Discussion](.discuss/2026-01-17/skill-discuss-architecture-design/outline.md)
-- [Decision Documents](.discuss/2026-01-17/skill-discuss-architecture-design/decisions/)
+- [Multi-Agent Platform Support Discussion](.discuss/2026-01-30/multi-agent-platform-support/outline.md)
 - [How It Works](docs/HOW-IT-WORKS.md)
 - [Project README](README.md)
 
 ---
 
-**Version**: 0.1.0
-**Last Updated**: 2026-01-28
+**Version**: 0.2.0
+**Last Updated**: 2026-01-30

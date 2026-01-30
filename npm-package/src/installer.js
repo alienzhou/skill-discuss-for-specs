@@ -2,7 +2,7 @@
  * Installation and uninstallation logic
  */
 
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import {
@@ -21,7 +21,8 @@ import {
   getPlatformConfig,
   getSkillsDir,
   installHooksConfig,
-  removeHooksConfig
+  removeHooksConfig,
+  platformSupportsStopHook
 } from './platform-config.js';
 
 import {
@@ -163,6 +164,66 @@ export async function install(options = {}) {
         if (existsSync(srcSkill)) {
           copyDirectory(srcSkill, destSkill);
           installedSkills.push(skill);
+          
+          // Inject L1 guidance if platform doesn't support stop hook
+          if (!platformSupportsStopHook(targetPlatform)) {
+            const skillMdPath = join(destSkill, 'SKILL.md');
+            const l1GuidancePath = join(srcSkill, 'references', 'l1-guidance.md');
+            
+            if (existsSync(skillMdPath) && existsSync(l1GuidancePath)) {
+              try {
+                const skillContent = readFileSync(skillMdPath, 'utf-8');
+                const l1Guidance = readFileSync(l1GuidancePath, 'utf-8');
+                
+                // Extract content layer (skip metadata comments)
+                const guidanceLines = l1Guidance.split('\n');
+                const contentStart = guidanceLines.findIndex(line => 
+                  line.trim().startsWith('##') && !line.trim().startsWith('## 📝')
+                );
+                const contentEnd = guidanceLines.findIndex((line, idx) => 
+                  idx > contentStart && line.trim().startsWith('##') && !line.trim().startsWith('## 📝')
+                );
+                
+                let guidanceContent = '';
+                if (contentStart >= 0) {
+                  const startIdx = guidanceLines.findIndex((line, idx) => 
+                    idx >= contentStart && line.trim().startsWith('## 📝')
+                  );
+                  const endIdx = contentEnd >= 0 ? contentEnd : guidanceLines.length;
+                  guidanceContent = guidanceLines.slice(startIdx, endIdx).join('\n').trim();
+                } else {
+                  // Fallback: use everything after first ##
+                  const firstHeader = guidanceLines.findIndex(line => line.trim().startsWith('##'));
+                  if (firstHeader >= 0) {
+                    guidanceContent = guidanceLines.slice(firstHeader).join('\n').trim();
+                  }
+                }
+                
+                // Find injection point: after "Your Responsibilities" section
+                const responsibilitiesMarker = '## 🎯 Your Responsibilities';
+                const responsibilitiesIndex = skillContent.indexOf(responsibilitiesMarker);
+                
+                if (responsibilitiesIndex >= 0 && guidanceContent) {
+                  // Find the end of "Your Responsibilities" section (next ## or ---)
+                  const afterMarker = skillContent.substring(responsibilitiesIndex);
+                  const nextSectionMatch = afterMarker.match(/\n(## |---)/);
+                  const injectionPoint = nextSectionMatch 
+                    ? responsibilitiesIndex + nextSectionMatch.index + 1
+                    : responsibilitiesIndex + afterMarker.length;
+                  
+                  // Inject guidance
+                  const before = skillContent.substring(0, injectionPoint);
+                  const after = skillContent.substring(injectionPoint);
+                  const updatedContent = before + '\n\n' + guidanceContent + '\n\n' + after;
+                  
+                  writeFileSync(skillMdPath, updatedContent, 'utf-8');
+                  // L1 guidance injected successfully
+                }
+              } catch (e) {
+                // Silent - L1 guidance injection is optional, continue on error
+              }
+            }
+          }
         }
       }
       

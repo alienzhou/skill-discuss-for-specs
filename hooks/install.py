@@ -20,7 +20,6 @@ from typing import Optional
 
 # Hook script paths (relative to this install.py)
 HOOKS_DIR = Path(__file__).parent
-TRACK_FILE_EDIT = HOOKS_DIR / "file-edit" / "track_file_edit.py"
 CHECK_PRECIPITATION = HOOKS_DIR / "stop" / "check_precipitation.py"
 
 
@@ -80,7 +79,6 @@ def copy_hooks_to_install_dir(platform: str) -> Path:
     # Create directories
     install_dir.mkdir(parents=True, exist_ok=True)
     (install_dir / "common").mkdir(exist_ok=True)
-    (install_dir / "file-edit").mkdir(exist_ok=True)
     (install_dir / "stop").mkdir(exist_ok=True)
     
     # Copy common modules
@@ -88,11 +86,9 @@ def copy_hooks_to_install_dir(platform: str) -> Path:
         shutil.copy(file, install_dir / "common" / file.name)
     
     # Copy hook scripts
-    shutil.copy(TRACK_FILE_EDIT, install_dir / "file-edit" / "track_file_edit.py")
     shutil.copy(CHECK_PRECIPITATION, install_dir / "stop" / "check_precipitation.py")
     
     # Make scripts executable
-    (install_dir / "file-edit" / "track_file_edit.py").chmod(0o755)
     (install_dir / "stop" / "check_precipitation.py").chmod(0o755)
     
     return install_dir
@@ -105,7 +101,6 @@ def install_claude_hooks() -> None:
     # Copy hooks to install directory
     install_dir = copy_hooks_to_install_dir("claude")
     
-    track_edit_cmd = f"python3 {install_dir}/file-edit/track_file_edit.py"
     check_precip_cmd = f"python3 {install_dir}/stop/check_precipitation.py"
     
     # Load existing settings or create new
@@ -120,26 +115,6 @@ def install_claude_hooks() -> None:
         settings["hooks"] = {}
     
     hooks = settings["hooks"]
-    
-    # Add PostToolUse hook for file edit tracking
-    if "PostToolUse" not in hooks:
-        hooks["PostToolUse"] = []
-    
-    # Check if our hook already exists
-    discuss_hook_exists = any(
-        "discuss" in str(h.get("hooks", [{}])[0].get("command", ""))
-        for h in hooks["PostToolUse"]
-        if isinstance(h, dict)
-    )
-    
-    if not discuss_hook_exists:
-        hooks["PostToolUse"].append({
-            "matcher": "Edit|Write|MultiEdit",
-            "hooks": [{
-                "type": "command",
-                "command": track_edit_cmd
-            }]
-        })
     
     # Add Stop hook for precipitation check
     if "Stop" not in hooks:
@@ -177,7 +152,6 @@ def install_cursor_hooks() -> None:
     # Copy hooks to install directory
     install_dir = copy_hooks_to_install_dir("cursor")
     
-    track_edit_cmd = f"python3 {install_dir}/file-edit/track_file_edit.py"
     check_precip_cmd = f"python3 {install_dir}/stop/check_precipitation.py"
     
     # Load existing hooks or create new
@@ -188,21 +162,6 @@ def install_cursor_hooks() -> None:
         config = {"version": 1, "hooks": {}}
     
     hooks = config.setdefault("hooks", {})
-    
-    # Add afterFileEdit hook
-    if "afterFileEdit" not in hooks:
-        hooks["afterFileEdit"] = []
-    
-    discuss_hook_exists = any(
-        "discuss" in h.get("command", "")
-        for h in hooks["afterFileEdit"]
-        if isinstance(h, dict)
-    )
-    
-    if not discuss_hook_exists:
-        hooks["afterFileEdit"].append({
-            "command": track_edit_cmd
-        })
     
     # Add stop hook
     if "stop" not in hooks:
@@ -241,13 +200,6 @@ def uninstall_claude_hooks() -> None:
         
         hooks = settings.get("hooks", {})
         
-        # Remove PostToolUse hooks containing "discuss"
-        if "PostToolUse" in hooks:
-            hooks["PostToolUse"] = [
-                h for h in hooks["PostToolUse"]
-                if "discuss" not in str(h.get("hooks", [{}])[0].get("command", ""))
-            ]
-        
         # Remove Stop hooks containing "discuss"
         if "Stop" in hooks:
             hooks["Stop"] = [
@@ -276,13 +228,6 @@ def uninstall_cursor_hooks() -> None:
             config = json.load(f)
         
         hooks = config.get("hooks", {})
-        
-        # Remove afterFileEdit hooks containing "discuss"
-        if "afterFileEdit" in hooks:
-            hooks["afterFileEdit"] = [
-                h for h in hooks["afterFileEdit"]
-                if "discuss" not in h.get("command", "")
-            ]
         
         # Remove stop hooks containing "discuss"
         if "stop" in hooks:

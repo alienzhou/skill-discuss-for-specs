@@ -244,7 +244,6 @@ Ensure every problem has a disposition:
 └── YYYY-MM-DD/
     └── [topic-slug]/
         ├── outline.md      # Discussion outline (state-priority order)
-        ├── meta.yaml       # Metadata (fully automated by Hooks)
         ├── decisions/      # Decision documents
         │   ├── D01-xxx.md
         │   └── D02-xxx.md
@@ -262,11 +261,10 @@ For detailed templates, see [references/](./references/).
 
 ## 🚫 What You DON'T Do
 
-Hooks handle these automatically:
-- ❌ Round counting
-- ❌ Maintaining meta.yaml
+Hooks handle these automatically (on supported platforms):
+- ❌ Tracking discussion changes
 - ❌ Calculating stale thresholds
-- ❌ Generating reminders
+- ❌ Generating precipitation reminders
 
 **You focus on thinking, not accounting.**
 
@@ -357,5 +355,5 @@ Which path would you like to take?
 
 ---
 
-**Version**: 0.1.0  
-**Last Updated**: 2026-01-29
+**Version**: 0.2.0  
+**Last Updated**: 2026-01-30
