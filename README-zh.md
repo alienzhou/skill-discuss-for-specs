@@ -245,23 +245,6 @@ npm install -g @vibe-x/discuss-for-specs
 discuss-for-specs install --platform cursor
 ```
 
-#### 方式三：curl（轻量级，仅技能）
-
-适用于没有 Node.js 环境或只需要核心技能的场景：
-
-```bash
-# 自动检测平台
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash
-
-# 或指定平台
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- -p cursor
-
-# 列出所有支持的平台
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- --list
-```
-
-> ⚠️ **注意**：curl 安装仅安装技能（无 hooks）。如需 L2 功能（自动提醒），请使用 npm。
-
 ### 前置要求
 
 - **Node.js** 16+（npm 安装需要）
@@ -303,16 +286,11 @@ skill-discuss-for-specs/
 │   ├── dist/                # 所有平台的构建产物
 │   ├── hooks/               # 打包的 hooks（构建时复制）
 │   └── src/                 # CLI 源码
-├── install.sh           # 🔌 通用 curl 安装脚本（自动检测平台）
 ├── config/              # ⚙️ 配置模板
 └── .discuss/            # 💬 讨论归档（示例）
 ```
 
 > **说明**：所有技能构建通过 `npm-package/scripts/build.js` 完成。
-> `install.sh` 脚本从 `npm-package/dist/` 下载资源。
-
-> **说明**：所有技能构建通过 `npm-package/scripts/build.js` 完成。
-> `platforms/` 目录只包含安装脚本，它们从 `npm-package/dist/` 下载资源。
 
 ---
 

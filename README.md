@@ -247,23 +247,6 @@ npm install -g @vibe-x/discuss-for-specs
 discuss-for-specs install --platform cursor
 ```
 
-#### Option 3: curl (lightweight, skills only)
-
-For environments without Node.js or when you only need the core skills:
-
-```bash
-# Auto-detect platform
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash
-
-# Or specify platform
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- -p cursor
-
-# List all supported platforms
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- --list
-```
-
-> ⚠️ **Note**: curl installation only installs skills (no hooks). For L2 features (auto-reminders), use npm.
-
 ### Requirements
 
 - **Node.js** 16+ (for npm installation)
@@ -305,13 +288,11 @@ skill-discuss-for-specs/
 │   ├── dist/                # Built skills for all platforms
 │   ├── hooks/               # Bundled hooks (copied during build)
 │   └── src/                 # CLI source code
-├── install.sh           # 🔌 Universal curl installer (auto-detect platform)
 ├── config/              # ⚙️ Configuration templates
 └── .discuss/            # 💬 Discussion archives (examples)
 ```
 
-> **Note**: All skill builds are done via `npm-package/scripts/build.js`. 
-> The `install.sh` script downloads from `npm-package/dist/`.
+> **Note**: All skill builds are done via `npm-package/scripts/build.js`.
 
 ---
 

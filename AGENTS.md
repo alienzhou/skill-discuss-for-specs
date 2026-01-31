@@ -37,7 +37,6 @@ skill-discuss-for-specs/
 │   ├── dist/                # Built skills for all platforms
 │   ├── hooks/               # Bundled hooks
 │   └── src/                 # CLI source code
-├── install.sh           # 🔌 Universal curl installer (auto-detect platform)
 ├── config/              # ⚙️ Configuration files
 ├── templates/           # 📄 File templates
 └── .discuss/            # 💬 Active discussions (dot-prefixed)
@@ -127,21 +126,6 @@ npx @vibe-x/discuss-for-specs install
 npx @vibe-x/discuss-for-specs install --platform claude-code
 npx @vibe-x/discuss-for-specs install --platform cursor
 ```
-
-### Installing (curl-based, skills only)
-
-```bash
-# Auto-detect platform
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash
-
-# Specify platform
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- -p cursor
-
-# List supported platforms
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/install.sh | bash -s -- --list
-```
-
-> **Note**: curl installation only installs skills (no hooks). For L2 features (auto-reminders), use npm.
 
 ### Testing Changes
 

@@ -127,10 +127,9 @@ Hooks are Python scripts in `hooks/`:
 
 ### Adding Platform Support
 
-1. Create `platforms/<platform-name>/`
-2. Add `build.sh` and `install.sh` scripts
-3. Add platform header in `skills/*/headers/<platform-name>.yaml`
-4. Update `npm-package/scripts/build.js` to include the platform
+1. Add platform header in `skills/*/headers/<platform-name>.yaml`
+2. Add platform configuration in `npm-package/src/platform-config.js`
+3. Update `npm-package/scripts/build.js` to include the platform
 
 ## Code Style
 

@@ -51,21 +51,7 @@ cat ~/.claude/settings.json | grep -A10 "hooks"
 # Expected: Stop hook configured
 ```
 
-### Option B: curl-based Installation (L1 platforms, skills only)
-
-```bash
-# 1. Install for Kilocode (or opencode, codex)
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/platforms/kilocode/install.sh | bash
-
-# 2. Verify Skills installation
-ls -la ~/.kilocode/skills/
-# Expected: discuss-for-specs/ directory exists
-
-# 3. No hooks for L1 platforms
-# L1 platforms rely on skill guidance for manual decision precipitation
-```
-
-### Expected Output (npm-based)
+### Expected Output
 
 Installation should display:
 ```
@@ -290,11 +276,13 @@ rm .discuss/.snapshot.yaml
 
 **Objective**: Verify that L1 platforms (Kilocode, OpenCode, Codex CLI) work correctly without hooks.
 
+> **Note**: L1 platforms should be installed using npm package with `--platform` flag.
+
 ### Steps
 
 ```bash
-# 1. Install via curl for L1 platform (e.g., kilocode)
-curl -fsSL https://raw.githubusercontent.com/vibe-x-ai/skill-discuss-for-specs/main/platforms/kilocode/install.sh | bash
+# 1. Install for L1 platform (e.g., kilocode)
+npx @vibe-x/discuss-for-specs install --platform kilocode
 
 # 2. Verify skill files
 ls -la ~/.kilocode/skills/discuss-for-specs/
@@ -320,7 +308,7 @@ For L1 platforms:
 | Skills | ✅ Installed | ✅ Installed |
 | Hooks | ❌ Not installed | ✅ Installed |
 | Auto-reminders | ❌ Manual only | ✅ Automatic |
-| Installation | curl (skills only) | npm (full) or curl |
+| Installation | npm (skills only) | npm (full) |
 
 ---
 
@@ -328,6 +316,7 @@ For L1 platforms:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.5.0 | 2026-02-01 | Removed curl installation support, unified to npm-only installation |
 | 0.4.0 | 2026-01-31 | Added L1 platform verification (Kilocode, OpenCode, Codex CLI), updated installation options with curl |
 | 0.3.0 | 2026-01-30 | Updated for snapshot-based detection, removed file-edit hook scenarios, simplified to single stop hook |
 | 0.2.0 | 2026-01-28 | Updated for merged skill (`discuss-for-specs`), new directory structure (`.discuss/`), session-based round counting |
@@ -335,4 +324,4 @@ For L1 platforms:
 
 ---
 
-**Last Updated**: 2026-01-31
+**Last Updated**: 2026-02-01
