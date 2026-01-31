@@ -1,5 +1,5 @@
 # Version
-version: "0.1.0"
+version: "{{version}}"
 
 # Precipitation reminder configuration
 stale_detection:

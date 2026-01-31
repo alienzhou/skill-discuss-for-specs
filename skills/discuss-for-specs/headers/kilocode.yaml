@@ -4,5 +4,5 @@ description: "You MUST use this skill when the user wants to discuss, analyze, o
 license: Apache-2.0
 metadata:
   author: vibe-x-ai
-  version: 0.1.0
+  version: "{{version}}"
 ---

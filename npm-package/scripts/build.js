@@ -11,6 +11,22 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 
+// Read version from package.json (single source of truth)
+const packageJson = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf-8')
+);
+const VERSION = packageJson.version;
+
+/**
+ * Inject template variables into content
+ * Currently only supports {{version}}
+ * @param {string} content - Content with template variables
+ * @returns {string} - Content with variables replaced
+ */
+function injectVersion(content) {
+  return content.replace(/\{\{version\}\}/g, VERSION);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -78,7 +94,9 @@ function buildSkill(skillName, platform) {
   // Read header if exists
   let header = '';
   if (existsSync(headerFile)) {
-    const headerYaml = readFileSync(headerFile, 'utf-8').trim();
+    let headerYaml = readFileSync(headerFile, 'utf-8').trim();
+    // Inject version template variable
+    headerYaml = injectVersion(headerYaml);
     // Check if header already has frontmatter delimiters
     if (headerYaml.startsWith('---')) {
       // Header already has frontmatter, use as-is
@@ -174,8 +192,27 @@ function copyConfig() {
   const configDest = join(PROJECT_ROOT, 'config');
   
   if (existsSync(configSrc)) {
-    cpSync(configSrc, configDest, { recursive: true, force: true });
-    console.log(`  ✓ Copied config to ${configDest}`);
+    // Create destination directory
+    mkdirSync(configDest, { recursive: true });
+    
+    // Copy and process each file
+    const configFiles = readdirSync(configSrc);
+    for (const file of configFiles) {
+      const srcPath = join(configSrc, file);
+      const destPath = join(configDest, file);
+      
+      if (file.endsWith('.yaml') || file.endsWith('.yml')) {
+        // Inject version for YAML files
+        let content = readFileSync(srcPath, 'utf-8');
+        content = injectVersion(content);
+        writeFileSync(destPath, content, 'utf-8');
+        console.log(`  ✓ Processed ${file} (version: ${VERSION})`);
+      } else {
+        // Copy other files as-is
+        cpSync(srcPath, destPath);
+        console.log(`  ✓ Copied ${file}`);
+      }
+    }
   }
 }
 
