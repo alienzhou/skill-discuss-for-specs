@@ -72,7 +72,7 @@ Add three key elements to the merged Skill:
 
 ### 3. Discussion-First Principle
 
-When user says "帮我写..." or "Generate...":
+When user says "Help me write..." or "Generate...":
 - ❌ Don't output multiple versions immediately
 - ✅ Ask clarifying questions first
 - ✅ Understand intent before producing output

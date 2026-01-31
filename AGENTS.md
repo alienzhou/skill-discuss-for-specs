@@ -64,7 +64,19 @@ This project provides discussion facilitation capabilities through a single unif
 - Decisions: `DXX-decision-title.md` (D01, D02, D03...)
 - Notes: `topic-name.md` (no prefix)
 
-### 3. Templates
+### 3. Language Conventions
+
+| Context | Language Rule |
+|---------|--------------|
+| Conversation replies | Follow the user's language (Chinese if user writes in Chinese) |
+| Documentation editing | Always use English as the primary language |
+| Code comments | English |
+
+This ensures:
+- Natural interaction with users in their preferred language
+- Consistent, searchable documentation in a universal language
+
+### 4. Templates
 
 Templates for new discussions are in `templates/`:
 - `outline.md` - Outline template
@@ -167,4 +179,4 @@ Hooks are Python scripts that run at specific lifecycle events:
 ---
 
 **Version**: 0.2.0
-**Last Updated**: 2026-01-30
+**Last Updated**: 2026-01-31
