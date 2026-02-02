@@ -31,22 +31,19 @@ cd ..
 ```
 skill-discuss-for-specs/
 ├── skills/              # Skill definitions (Markdown instructions for AI)
-│   ├── discuss-coordinator/
-│   └── discuss-output/
+│   └── discuss-for-specs/    # Unified discussion skill
+│       ├── SKILL.md          # Core skill content
+│       ├── headers/          # Platform-specific YAML headers
+│       └── references/       # Templates and reference docs
 ├── hooks/               # Python automation scripts (source)
 │   ├── common/          # Shared utilities
-│   ├── post-response/   # Run after each AI response
-│   ├── file-edit/       # Run on file edits
-│   └── stop/            # Run when discussion stops
+│   └── stop/            # Precipitation check (snapshot-based)
 ├── npm-package/         # NPM package for distribution
 │   ├── src/             # Package source code
 │   ├── bin/             # CLI entry point
 │   ├── scripts/         # Build scripts
-│   ├── dist/            # [Generated] Built skills
+│   ├── dist/            # [Generated] Built skills for all platforms
 │   └── hooks/           # [Generated] Copied from root hooks/
-├── platforms/           # Platform-specific adaptations
-│   ├── claude-code/
-│   └── cursor/
 ├── config/              # Configuration files
 ├── templates/           # File templates for new discussions
 ├── tests/               # Python tests
@@ -79,14 +76,6 @@ npm run build
 # - dist/claude-code/  - Skills built for Claude Code
 # - dist/cursor/       - Skills built for Cursor
 # - hooks/             - Copied from root hooks/
-```
-
-### Platform-Specific Builds
-
-```bash
-# Build for specific platform
-./platforms/claude-code/build.sh
-./platforms/cursor/build.sh
 ```
 
 ## Testing

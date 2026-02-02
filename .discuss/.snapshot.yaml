@@ -20,3 +20,23 @@ discussions:
     notes:
     - name: platform-research.md
       mtime: 1769786524.0281587
+  2026-02-02/v0.3.0-release-planning:
+    outline:
+      mtime: 1770025253.6271384
+      change_count: 0
+    decisions:
+    - name: D01-workspace-detection-improvement.md
+      mtime: 1770023728.069416
+    - name: D02-skill-workspace-guidance.md
+      mtime: 1770024196.0060875
+    - name: D03-project-level-installation.md
+      mtime: 1770025253.6282327
+    notes:
+    - name: project-level-skills-research.md
+      mtime: 1770025095.8800292
+    - name: workspace-research-verification.md
+      mtime: 1770023422.0129411
+    - name: trae-platform-research.md
+      mtime: 1770024710.7602818
+    - name: qoder-platform-research.md
+      mtime: 1770024710.7603528

@@ -133,10 +133,9 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 
 | ❌ 没有讨论模式 | ✅ 有讨论模式 |
 |:--------------|:-------------|
-| 📜 只有聊天历史 | 📁 `discuss/caching-system/` |
+| 📜 只有聊天历史 | 📁 `.discuss/caching-system/` |
 | (向上滚动查找内容) | ├── 📋 `outline.md` (实时进度) |
-| (信息散落在对话中) | ├── 📊 `meta.yaml` (轮次计数) |
-| • 决策 1... 在某处 | └── 📄 `decisions/` |
+| (信息散落在对话中) | └── 📄 `decisions/` |
 | • 决策 2... 可能忘了 | &nbsp;&nbsp;&nbsp;&nbsp;├── `01-cache-pattern.md` |
 | • 决策 3... 哪一轮？ | &nbsp;&nbsp;&nbsp;&nbsp;├── `02-storage-choice.md` |
 | • 我们覆盖所有内容了吗？ | &nbsp;&nbsp;&nbsp;&nbsp;└── `03-ttl-strategy.md` |
@@ -371,6 +370,6 @@ npx @vibe-x/discuss-for-specs uninstall --platform cursor
 
 ---
 
-**版本**：0.1.0
+**版本**：0.2.0
 **状态**：V1 - 基础版本
 **理念**：通过 AI 引导的结构化讨论，将粗略想法转化为可执行规范。

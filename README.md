@@ -133,20 +133,19 @@ You ──────►  "The first one"  (Simple choice)
 
 ### Output Comparison
 
-| ❌ Without Discussion Mode | ✅ With Discussion Mode |
-|:--------------------------|:-----------------------|
-| 📜 Just chat history | 📁 `.discuss/caching-system/` |
-| (scroll up to find things) | ├── 📋 `outline.md` (live progress) |
-| (info scattered in conversation) | ├── 📊 `meta.yaml` (round count) |
-| • Decision 1... somewhere | └── 📄 `decisions/` |
-| • Decision 2... maybe forgot | &nbsp;&nbsp;&nbsp;&nbsp;├── `01-cache-pattern.md` |
-| • Decision 3... which round? | &nbsp;&nbsp;&nbsp;&nbsp;├── `02-storage-choice.md` |
-| • Did we cover everything? | &nbsp;&nbsp;&nbsp;&nbsp;└── `03-ttl-strategy.md` |
-| • What's still pending? | &nbsp;&nbsp;&nbsp;&nbsp;└── (each decision archived separately) |
-|  |  |
-| ❌ No structure | ✅ Structured & searchable |
-| ❌ Easy to lose track | ✅ Nothing lost |
-| ❌ Hard to resume later | ✅ Resume anytime |
+| ❌ Without Discussion Mode       | ✅ With Discussion Mode                                            |
+| :------------------------------- | :----------------------------------------------------------------- |
+| 📜 Just chat history             | 📁`.discuss/caching-system/`                                     |
+| (scroll up to find things)       | ├── 📋`outline.md` (live progress)                            |
+| (info scattered in conversation) | └── 📄`decisions/`                                            |
+| • Decision 2... maybe forgot    | &nbsp;&nbsp;&nbsp;&nbsp;├── `01-cache-pattern.md`             |
+| • Decision 3... which round?    | &nbsp;&nbsp;&nbsp;&nbsp;├── `02-storage-choice.md`            |
+| • Did we cover everything?      | &nbsp;&nbsp;&nbsp;&nbsp;└── `03-ttl-strategy.md`              |
+| • What's still pending?         | &nbsp;&nbsp;&nbsp;&nbsp;└── (each decision archived separately) |
+|                                  |                                                                    |
+| ❌ No structure                  | ✅ Structured & searchable                                         |
+| ❌ Easy to lose track            | ✅ Nothing lost                                                    |
+| ❌ Hard to resume later          | ✅ Resume anytime                                                  |
 
 ---
 
@@ -154,12 +153,12 @@ You ──────►  "The first one"  (Simple choice)
 
 Discussion Mode is **not a replacement for Specs** — it's the **upstream decision layer** that makes Specs easier to write.
 
-|  | Discussion Mode | Specs |
-|--|-----------------|-------|
-| **Focus** | Process (explore, decide) | Artifact (document, execute) |
-| **Core question** | "What to decide & why?" | "What to build & how?" |
-| **Primary output** | `outline.md` + `decisions/` | Structured spec document |
-| **When to use** | Uncertainty is high | Decisions are clear |
+|                          | Discussion Mode                 | Specs                        |
+| ------------------------ | ------------------------------- | ---------------------------- |
+| **Focus**          | Process (explore, decide)       | Artifact (document, execute) |
+| **Core question**  | "What to decide & why?"         | "What to build & how?"       |
+| **Primary output** | `outline.md` + `decisions/` | Structured spec document     |
+| **When to use**    | Uncertainty is high             | Decisions are clear          |
 
 ### Workflow in SDD
 
@@ -175,13 +174,13 @@ This project is **tool-agnostic**: combine it with any Spec template, IDE workfl
 
 Use Discussion Mode whenever you need to clarify and refine ideas:
 
-| Scenario | When to Use | How It Helps |
-|----------|-------------|--------------|
-| **Technical Solution Design** | "I need to design a caching system, how should I do it?" | Explore architectures, evaluate tradeoffs, reach clear decisions |
-| **Problem Diagnosis** | "There's a performance issue online, how should I solve it?" | Systematically analyze issues, track hypotheses, document findings |
-| **Technology Selection** | "Redis or Memcached? Should we use Kafka?" | Compare options, assess fit, make informed choices |
-| **Product Design** | "How should the user flow for this feature be designed?" | Refine requirements, explore user flows, document decisions |
-| **Spec Generation** | "I have a technical idea but haven't thought it through, how to refine it?" | Transform rough ideas into comprehensive, actionable specifications |
+| Scenario                            | When to Use                                                                 | How It Helps                                                        |
+| ----------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **Technical Solution Design** | "I need to design a caching system, how should I do it?"                    | Explore architectures, evaluate tradeoffs, reach clear decisions    |
+| **Problem Diagnosis**         | "There's a performance issue online, how should I solve it?"                | Systematically analyze issues, track hypotheses, document findings  |
+| **Technology Selection**      | "Redis or Memcached? Should we use Kafka?"                                  | Compare options, assess fit, make informed choices                  |
+| **Product Design**            | "How should the user flow for this feature be designed?"                    | Refine requirements, explore user flows, document decisions         |
+| **Spec Generation**           | "I have a technical idea but haven't thought it through, how to refine it?" | Transform rough ideas into comprehensive, actionable specifications |
 
 ---
 
@@ -198,24 +197,24 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 
 ## 🔌 Platform Support
 
-| Platform | Status | Level | Install Command |
-|----------|:------:|:-----:|-----------------|
-| **Claude Code** | ✅ Ready | L2 | `npx @vibe-x/discuss-for-specs install --platform claude-code` |
-| **Cursor** | ✅ Ready | L2 | `npx @vibe-x/discuss-for-specs install --platform cursor` |
-| **Kilocode** | ✅ Ready | L1 | `npx @vibe-x/discuss-for-specs install --platform kilocode` |
-| **OpenCode** | ✅ Ready | L1 | `npx @vibe-x/discuss-for-specs install --platform opencode` |
-| **Codex CLI** | ✅ Ready | L1 | `npx @vibe-x/discuss-for-specs install --platform codex` |
-| Cline | 🔜 Planned | L2 | - |
-| Windsurf | 🔜 Planned | - | - |
+| Platform              |   Status   | Level | Install Command                                                  |
+| --------------------- | :--------: | :---: | ---------------------------------------------------------------- |
+| **Claude Code** |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install --platform claude-code` |
+| **Cursor**      |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install --platform cursor`      |
+| **Kilocode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform kilocode`    |
+| **OpenCode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform opencode`    |
+| **Codex CLI**   |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform codex`       |
+| Cline                 | 🔜 Planned |  L2  | -                                                                |
+| Windsurf              | 🔜 Planned |   -   | -                                                                |
 
 ### What's the difference between L1 and L2?
 
-| Feature | L1 Platforms | L2 Platforms |
-|---------|:------------:|:------------:|
-| Discussion facilitation | ✅ | ✅ |
-| Progress tracking | ✅ | ✅ |
-| Decision precipitation | ✅ | ✅ |
-| **Auto-reminder hooks** | ❌ | ✅ |
+| Feature                       | L1 Platforms | L2 Platforms |
+| ----------------------------- | :----------: | :----------: |
+| Discussion facilitation       |      ✅      |      ✅      |
+| Progress tracking             |      ✅      |      ✅      |
+| Decision precipitation        |      ✅      |      ✅      |
+| **Auto-reminder hooks** |      ❌      |      ✅      |
 
 - **L2 platforms** (Claude Code, Cursor) support hooks that automatically remind you to precipitate decisions
 - **L1 platforms** (Kilocode, OpenCode, Codex) have full discussion features but require manual decision tracking
@@ -373,6 +372,6 @@ Built on insights from the Claude Skills ecosystem, Spec Driven Development prac
 
 ---
 
-**Version**: 0.1.0  
-**Status**: V1 - Foundation  
+**Version**: 0.2.0
+**Status**: V1 - Foundation
 **Philosophy**: Transform rough ideas into actionable specifications through AI-guided structured discussion.
