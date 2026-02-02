@@ -73,9 +73,11 @@ program
   .command('install')
   .description('Install skills and hooks to your environment')
   .option('-p, --platform <platform>', 'Target platform (claude-code, cursor, kilocode, opencode, codex)')
-  .option('-t, --target <dir>', 'Target project directory (default: global installation)')
+  .option('-t, --target <dir>', 'Target project directory for project-level installation')
+  .option('--project-level', 'Install to current directory (shorthand for --target .)')
   .option('--skip-hooks', 'Skip hooks installation (L2 platforms only)')
   .option('--skip-skills', 'Skip skills installation')
+  .option('--stale-threshold <n>', 'Stale detection threshold (0=disabled, default=3)', parseInt)
   .option('-y, --yes', 'Skip confirmation prompts')
   .addHelpText('after', `
 Platform Options:
@@ -88,11 +90,23 @@ Platform Options:
     opencode      ~/.opencode/skill/
     codex         ~/.codex/skills/
 
+Installation Modes:
+  (default)           User-level: ~/.{platform}/skills/
+  --project-level     Project-level: ./{platform}/skills/ (current directory)
+  --target <dir>      Custom target: <dir>/.{platform}/skills/
+
+Stale Threshold:
+  --stale-threshold <n>   Number of rounds before reminder (0=disabled, default=3)
+                          0: No stale detection (disabled)
+                          1: Remind after 1 round without update
+                          3: Remind after 3 rounds (default)
+
 Examples:
-  $ discuss-for-specs install                    # Auto-detect platform
-  $ discuss-for-specs install -p claude-code     # Install for Claude Code
-  $ discuss-for-specs install -p kilocode        # Install for Kilocode
-  $ discuss-for-specs install -t ./my-project    # Install to project directory`)
+  $ discuss-for-specs install                       # Auto-detect, user-level
+  $ discuss-for-specs install -p claude-code        # Install for Claude Code
+  $ discuss-for-specs install --project-level       # Install to current directory
+  $ discuss-for-specs install -t ./my-project       # Install to specific directory
+  $ discuss-for-specs install --stale-threshold 5   # Set threshold to 5 rounds`)
   .action(async (options) => {
     try {
       await install(options);
@@ -107,13 +121,17 @@ program
   .command('uninstall')
   .description('Remove skills and hooks from your environment')
   .option('-p, --platform <platform>', 'Target platform (claude-code, cursor, kilocode, opencode, codex)')
+  .option('-t, --target <dir>', 'Target project directory for project-level uninstallation')
+  .option('--project-level', 'Uninstall from current directory (shorthand for --target .)')
   .option('--keep-hooks', 'Keep hooks but remove skills')
   .option('--keep-skills', 'Keep skills but remove hooks')
   .option('-y, --yes', 'Skip confirmation prompts')
   .addHelpText('after', `
 Examples:
-  $ discuss-for-specs uninstall                  # Auto-detect and uninstall
+  $ discuss-for-specs uninstall                  # Auto-detect and uninstall (user-level)
   $ discuss-for-specs uninstall -p cursor        # Uninstall from Cursor
+  $ discuss-for-specs uninstall --project-level  # Uninstall from current directory
+  $ discuss-for-specs uninstall -t ./my-project  # Uninstall from specific directory
   $ discuss-for-specs uninstall --keep-hooks     # Remove skills only`)
   .action(async (options) => {
     try {

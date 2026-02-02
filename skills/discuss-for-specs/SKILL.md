@@ -18,8 +18,7 @@ When discussion begins, you MUST:
    ```
    .discuss/YYYY-MM-DD/[topic-slug]/
    ```
-   - **IMPORTANT**: Create `.discuss/` at the workspace root (where the user's project is), NOT in the skill directory or user's home directory
-   - The workspace root is the directory you're currently working in (your cwd)
+   - **IMPORTANT**: Create `.discuss/` at the workspace root — the top-level directory of the user's project. NOT in skill directories, subdirectories, or home directory.
    - Use today's date
    - Generate topic-slug from discussion topic (e.g., `detect-agent-cli-design`)
 
@@ -355,5 +354,5 @@ Which path would you like to take?
 
 ---
 
-**Version**: 0.2.0  
-**Last Updated**: 2026-01-30
+**Version**: 0.3.0  
+**Last Updated**: 2026-02-02

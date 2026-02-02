@@ -192,6 +192,18 @@ Hooks are Python scripts that run at specific lifecycle events:
 3. **Don't break cross-platform compatibility** - Test build scripts for all platforms
 4. **Keep hooks simple** - Complex logic should be in dedicated modules
 
+### CRITICAL: Source vs Build Artifacts
+
+**NEVER modify files under `npm-package/hooks/` or `npm-package/config/`** — these are build artifacts generated from source directories. Always modify the source files:
+
+| Source (modify this) | Build artifact (auto-generated) |
+|---------------------|--------------------------------|
+| `hooks/` | `npm-package/hooks/` |
+| `config/` | `npm-package/config/` |
+| `skills/` | `npm-package/dist/` |
+
+After modifying source files, run `npm run build` in the `npm-package/` directory to regenerate artifacts. The build artifacts are in `.gitignore` and should never be committed.
+
 ## 🔗 Related Resources
 
 - [Architecture Design Discussion](.discuss/2026-01-17/skill-discuss-architecture-design/outline.md)
@@ -201,5 +213,5 @@ Hooks are Python scripts that run at specific lifecycle events:
 
 ---
 
-**Version**: 0.2.0
-**Last Updated**: 2026-01-31
+**Version**: 0.3.0
+**Last Updated**: 2026-02-02

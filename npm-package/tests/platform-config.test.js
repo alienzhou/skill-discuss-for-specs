@@ -14,6 +14,7 @@ import {
   getPlatformConfig,
   getSkillsDir,
   getSettingsPath,
+  getProjectHooksDir,
   platformSupportsStopHook,
 } from '../src/platform-config.js';
 
@@ -92,6 +93,39 @@ describe('getSettingsPath', () => {
     const result = getSettingsPath('cursor');
     const home = homedir();
     assert.strictEqual(result, join(home, '.cursor', 'hooks.json'));
+  });
+
+  test('returns project-level path when targetDir provided for claude-code', () => {
+    const targetDir = '/my/project';
+    const result = getSettingsPath('claude-code', targetDir);
+    assert.strictEqual(result, join(targetDir, '.claude', 'settings.json'));
+  });
+
+  test('returns project-level path when targetDir provided for cursor', () => {
+    const targetDir = '/my/project';
+    const result = getSettingsPath('cursor', targetDir);
+    assert.strictEqual(result, join(targetDir, '.cursor', 'hooks.json'));
+  });
+});
+
+
+describe('getProjectHooksDir', () => {
+  test('returns project-level hooks path for claude-code', () => {
+    const targetDir = '/my/project';
+    const result = getProjectHooksDir('claude-code', targetDir);
+    assert.strictEqual(result, join(targetDir, '.claude', 'hooks'));
+  });
+
+  test('returns project-level hooks path for cursor', () => {
+    const targetDir = '/my/project';
+    const result = getProjectHooksDir('cursor', targetDir);
+    assert.strictEqual(result, join(targetDir, '.cursor', 'hooks'));
+  });
+
+  test('returns project-level hooks path for kilocode (L1 platform)', () => {
+    const targetDir = '/my/project';
+    const result = getProjectHooksDir('kilocode', targetDir);
+    assert.strictEqual(result, join(targetDir, '.kilocode', 'hooks'));
   });
 });
 

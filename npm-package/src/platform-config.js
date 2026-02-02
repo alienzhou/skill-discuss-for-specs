@@ -108,10 +108,18 @@ export function getSkillsDir(platformId, targetDir = null) {
  * Get the settings file path for a platform
  * 
  * @param {string} platformId - Platform ID
+ * @param {string} [targetDir] - Optional target project directory for project-level installation
  * @returns {string} Settings file path
  */
-export function getSettingsPath(platformId) {
+export function getSettingsPath(platformId, targetDir = null) {
   const config = getPlatformConfig(platformId);
+  
+  if (targetDir) {
+    // Project-level: install to target/.{platform}/settings.json
+    return join(targetDir, config.configDir, config.settingsFile);
+  }
+  
+  // User-level: install to ~/.{platform}/settings.json
   return join(getHomeDir(), config.configDir, config.settingsFile);
 }
 
@@ -131,10 +139,10 @@ export function platformSupportsStopHook(platformId) {
 
 /**
  * Generate hooks configuration for Claude Code
+ * 
+ * @param {string} hooksDir - Hooks directory path
  */
-function generateClaudeCodeHooksConfig() {
-  const hooksDir = getHooksDir();
-  
+function generateClaudeCodeHooksConfig(hooksDir) {
   return {
     Stop: [{
       matcher: "",
@@ -148,10 +156,10 @@ function generateClaudeCodeHooksConfig() {
 
 /**
  * Generate hooks configuration for Cursor
+ * 
+ * @param {string} hooksDir - Hooks directory path
  */
-function generateCursorHooksConfig() {
-  const hooksDir = getHooksDir();
-  
+function generateCursorHooksConfig(hooksDir) {
   return {
     version: 1,
     hooks: {
@@ -163,20 +171,39 @@ function generateCursorHooksConfig() {
 }
 
 /**
+ * Get project-level hooks directory
+ * 
+ * @param {string} platformId - Platform ID
+ * @param {string} targetDir - Target project directory
+ * @returns {string} Hooks directory path
+ */
+export function getProjectHooksDir(platformId, targetDir) {
+  const config = getPlatformConfig(platformId);
+  return join(targetDir, config.configDir, 'hooks');
+}
+
+/**
  * Install hooks configuration for a platform
  * 
  * @param {string} platformId - Platform ID
+ * @param {Object} [options] - Options
+ * @param {string} [options.targetDir] - Target project directory for project-level installation
+ * @param {string} [options.hooksDir] - Hooks directory path (absolute or relative)
  * @returns {string|null} Settings path if configured, null if L1 platform (no hooks)
  */
-export function installHooksConfig(platformId) {
+export function installHooksConfig(platformId, options = {}) {
   const config = getPlatformConfig(platformId);
+  const { targetDir = null, hooksDir = null } = options;
   
   // L1 platforms don't have hooks support
   if (config.level === 'L1' || !config.hooksFormat) {
     return null;
   }
   
-  const settingsPath = getSettingsPath(platformId);
+  const settingsPath = getSettingsPath(platformId, targetDir);
+  
+  // Determine the hooks script path to use in configuration
+  const effectiveHooksDir = hooksDir || getHooksDir();
 
   if (config.hooksFormat === 'claude-code') {
     // Claude Code: merge into existing settings.json
@@ -193,8 +220,16 @@ export function installHooksConfig(platformId) {
     // Merge hooks configuration
     settings.hooks = {
       ...settings.hooks,
-      ...generateClaudeCodeHooksConfig()
+      ...generateClaudeCodeHooksConfig(effectiveHooksDir)
     };
+
+    // Ensure parent directory exists for project-level installation
+    const { dirname } = require('path');
+    const parentDir = dirname(settingsPath);
+    if (!existsSync(parentDir)) {
+      const { mkdirSync } = require('fs');
+      mkdirSync(parentDir, { recursive: true });
+    }
 
     writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
     // Note: caller handles the success message
@@ -211,11 +246,19 @@ export function installHooksConfig(platformId) {
       }
     }
 
-    const newConfig = generateCursorHooksConfig();
+    const newConfig = generateCursorHooksConfig(effectiveHooksDir);
     hooksConfig.hooks = {
       ...hooksConfig.hooks,
       ...newConfig.hooks
     };
+
+    // Ensure parent directory exists for project-level installation
+    const { dirname } = require('path');
+    const parentDir = dirname(settingsPath);
+    if (!existsSync(parentDir)) {
+      const { mkdirSync } = require('fs');
+      mkdirSync(parentDir, { recursive: true });
+    }
 
     writeFileSync(settingsPath, JSON.stringify(hooksConfig, null, 2), 'utf-8');
     // Note: caller handles the success message
@@ -228,9 +271,10 @@ export function installHooksConfig(platformId) {
  * Remove hooks configuration for a platform
  * 
  * @param {string} platformId - Platform ID
+ * @param {string} [targetDir] - Optional target project directory for project-level installation
  * @returns {string|null} Settings path if configured, null if L1 platform (no hooks)
  */
-export function removeHooksConfig(platformId) {
+export function removeHooksConfig(platformId, targetDir = null) {
   const config = getPlatformConfig(platformId);
   
   // L1 platforms don't have hooks support
@@ -238,7 +282,7 @@ export function removeHooksConfig(platformId) {
     return null;
   }
   
-  const settingsPath = getSettingsPath(platformId);
+  const settingsPath = getSettingsPath(platformId, targetDir);
 
   if (!existsSync(settingsPath)) {
     return null;

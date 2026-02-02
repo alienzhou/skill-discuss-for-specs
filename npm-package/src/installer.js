@@ -20,6 +20,7 @@ import {
   detectPlatform,
   getPlatformConfig,
   getSkillsDir,
+  getProjectHooksDir,
   installHooksConfig,
   removeHooksConfig,
   platformSupportsStopHook
@@ -162,21 +163,31 @@ export async function install(options = {}) {
   
   // 3. Handle target directory for project-level installation
   let targetDir = null;
-  if (options.target) {
+  let isProjectLevel = false;
+  
+  // --project-level is shorthand for --target .
+  if (options.projectLevel) {
+    const { resolve } = await import('path');
+    targetDir = resolve('.');
+    isProjectLevel = true;
+  } else if (options.target) {
     const { resolve } = await import('path');
     targetDir = resolve(options.target.replace(/^~/, process.env.HOME || ''));
+    isProjectLevel = true;
     
     if (!existsSync(targetDir)) {
       error(`Target directory does not exist: ${targetDir}`);
       throw new Error(`Target directory does not exist: ${targetDir}`);
     }
-    
+  }
+  
+  if (isProjectLevel) {
     newline();
     info(`Installing for ${colors.bold(platformConfig.name)} (project-level)`);
     console.log(colors.dim(`  Target: ${targetDir}`));
   } else {
     newline();
-    info(`Installing for ${colors.bold(platformConfig.name)} (global)`);
+    info(`Installing for ${colors.bold(platformConfig.name)} (user-level)`);
   }
 
   // 4. Get package root (where dist/ and hooks/ are)
@@ -275,7 +286,9 @@ export async function install(options = {}) {
     }
   }
 
-  // 6. Install Hooks (unless skipped) - hooks are always global
+  // 6. Install Hooks (unless skipped)
+  // For project-level: install hooks to project directory
+  // For user-level: install hooks to ~/.discuss-for-specs/hooks/
   // Note: L1 platforms don't have hooks support, skip for them
   const isL2Platform = platformSupportsStopHook(targetPlatform);
   
@@ -284,20 +297,49 @@ export async function install(options = {}) {
     spinner = createSpinner('Installing Hooks...');
     spinner.start();
     
-    if (targetDir) {
-      spinner.text = 'Installing Hooks (global)...';
-    }
-    
     const srcHooks = join(packageRoot, 'hooks');
-    const destHooks = getHooksDir();
+    
+    // Determine hooks destination based on installation mode
+    let destHooks;
+    if (isProjectLevel) {
+      // Project-level: install hooks to project/.{platform}/hooks/
+      destHooks = getProjectHooksDir(targetPlatform, targetDir);
+      spinner.text = 'Installing Hooks (project-level)...';
+    } else {
+      // User-level: install hooks to ~/.discuss-for-specs/hooks/
+      destHooks = getHooksDir();
+      spinner.text = 'Installing Hooks (user-level)...';
+    }
     
     if (!existsSync(srcHooks)) {
       spinner.fail('Hooks source not found');
       throw new Error(`Hooks source not found: ${srcHooks}`);
     }
     
-    // Copy hooks to config directory
+    // Copy hooks to destination directory
     copyDirectory(srcHooks, destHooks);
+    
+    // Apply stale_threshold if specified
+    if (options.staleThreshold !== undefined) {
+      const threshold = options.staleThreshold;
+      
+      // Validate threshold (must be non-negative integer)
+      if (!Number.isInteger(threshold) || threshold < 0) {
+        spinner.fail('Invalid stale-threshold value');
+        throw new Error('--stale-threshold must be a non-negative integer (0 = disabled)');
+      }
+      
+      // Update snapshot_manager.py DEFAULT_STALE_THRESHOLD
+      const snapshotManagerPath = join(destHooks, 'common', 'snapshot_manager.py');
+      if (existsSync(snapshotManagerPath)) {
+        let content = readFileSync(snapshotManagerPath, 'utf-8');
+        content = content.replace(
+          /DEFAULT_STALE_THRESHOLD\s*=\s*\d+/,
+          `DEFAULT_STALE_THRESHOLD = ${threshold}`
+        );
+        writeFileSync(snapshotManagerPath, content, 'utf-8');
+      }
+    }
     
     // Create logs directory
     const logsDir = getLogsDir();
@@ -305,13 +347,16 @@ export async function install(options = {}) {
     
     spinner.succeed('Hooks installed');
     success(`Copied to ${destHooks}`, true);
+    if (options.staleThreshold !== undefined) {
+      success(`Stale threshold: ${options.staleThreshold}${options.staleThreshold === 0 ? ' (disabled)' : ' rounds'}`, true);
+    }
     success(`Logs directory: ${logsDir}`, true);
     
     // Configure platform hooks
     newline();
     spinner = createSpinner('Configuring platform hooks...');
     spinner.start();
-    installHooksConfig(targetPlatform);
+    installHooksConfig(targetPlatform, { targetDir: isProjectLevel ? targetDir : null, hooksDir: destHooks });
     spinner.succeed('Platform hooks configured');
   } else if (!options.skipHooks && !isL2Platform) {
     // L1 platform - inform user that hooks are not applicable
@@ -326,8 +371,12 @@ export async function install(options = {}) {
     components.push(`Skills: ${getSkillsDir(targetPlatform, targetDir)}`);
   }
   if (!options.skipHooks && isL2Platform) {
-    components.push(`Hooks: ${getHooksDir()}`);
-    components.push(`Logs: ${getLogsDir()}`);
+    if (isProjectLevel) {
+      components.push(`Hooks: ${getProjectHooksDir(targetPlatform, targetDir)}`);
+    } else {
+      components.push(`Hooks: ${getHooksDir()}`);
+      components.push(`Logs: ${getLogsDir()}`);
+    }
   }
   
   const nextSteps = [`Open ${platformConfig.name}`];
@@ -369,8 +418,30 @@ export async function uninstall(options = {}) {
   }
 
   const platformConfig = getPlatformConfig(targetPlatform);
-  newline();
-  info(`Uninstalling from ${colors.bold(platformConfig.name)}...`);
+  
+  // Handle target directory for project-level uninstallation
+  let targetDir = null;
+  let isProjectLevel = false;
+  
+  // --project-level is shorthand for --target .
+  if (options.projectLevel) {
+    const { resolve } = await import('path');
+    targetDir = resolve('.');
+    isProjectLevel = true;
+  } else if (options.target) {
+    const { resolve } = await import('path');
+    targetDir = resolve(options.target.replace(/^~/, process.env.HOME || ''));
+    isProjectLevel = true;
+  }
+  
+  if (isProjectLevel) {
+    newline();
+    info(`Uninstalling from ${colors.bold(platformConfig.name)} (project-level)`);
+    console.log(colors.dim(`  Target: ${targetDir}`));
+  } else {
+    newline();
+    info(`Uninstalling from ${colors.bold(platformConfig.name)} (user-level)`);
+  }
 
   // 2. Remove Skills
   if (!options.keepSkills) {
@@ -378,7 +449,7 @@ export async function uninstall(options = {}) {
     let spinner = createSpinner('Removing Skills...');
     spinner.start();
     
-    const skillsDir = getSkillsDir(targetPlatform);
+    const skillsDir = getSkillsDir(targetPlatform, targetDir);
     const skills = ['discuss-for-specs'];
     const removedSkills = [];
     
@@ -404,7 +475,13 @@ export async function uninstall(options = {}) {
     let spinner = createSpinner('Removing Hooks...');
     spinner.start();
     
-    const hooksDir = getHooksDir();
+    let hooksDir;
+    if (isProjectLevel) {
+      hooksDir = getProjectHooksDir(targetPlatform, targetDir);
+    } else {
+      hooksDir = getHooksDir();
+    }
+    
     if (existsSync(hooksDir)) {
       removeDirectory(hooksDir);
       spinner.succeed('Hooks removed');
@@ -417,13 +494,17 @@ export async function uninstall(options = {}) {
     newline();
     spinner = createSpinner('Removing platform hooks configuration...');
     spinner.start();
-    removeHooksConfig(targetPlatform);
+    removeHooksConfig(targetPlatform, targetDir);
     spinner.succeed('Platform hooks configuration removed');
   }
 
   // 4. Done
+  const noteMessage = isProjectLevel 
+    ? 'Project-level installation removed.'
+    : 'Note: Logs directory was preserved at ~/.discuss-for-specs/logs/\nDelete it manually if you want to remove all data.';
+  
   showUninstallBox(
     'Uninstallation complete!',
-    'Note: Logs directory was preserved at ~/.discuss-for-specs/logs/\nDelete it manually if you want to remove all data.'
+    noteMessage
   );
 }

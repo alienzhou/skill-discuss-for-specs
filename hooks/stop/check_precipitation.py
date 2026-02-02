@@ -36,12 +36,11 @@ Workflow:
 import os
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 # Add parent directory to path for common imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from common.logging_utils import (
+from common.logging_utils import (  # noqa: E402
     log_action,
     log_debug,
     log_error,
@@ -50,9 +49,8 @@ from common.logging_utils import (
     log_info,
     log_skip,
     log_stale_detection,
-    log_warning,
 )
-from common.platform_utils import (
+from common.platform_utils import (  # noqa: E402
     Platform,
     allow_and_exit,
     block_and_exit,
@@ -60,7 +58,7 @@ from common.platform_utils import (
     is_stop_hook_active,
     read_stdin_json,
 )
-from common.snapshot_manager import (
+from common.snapshot_manager import (  # noqa: E402
     cleanup_deleted_discussions,
     compare_and_update,
     find_active_discussions,
@@ -74,21 +72,54 @@ from common.snapshot_manager import (
 HOOK_NAME = "check_precipitation"
 
 
-def get_workspace_root() -> Path:
+from typing import Any, Optional
+
+
+def get_workspace_root(input_data: Optional[dict[str, Any]] = None) -> Path:
     """
-    Get the workspace root directory.
+    Get the workspace root directory using priority-based detection.
     
-    Uses environment variables or current working directory.
+    Priority order:
+    1. stdin JSON data (workspace_roots / workspaceRoots)
+    2. Platform-specific environment variables (CURSOR_PROJECT_DIR, CLAUDE_PROJECT_DIR)
+    3. Generic environment variables (WORKSPACE_ROOT, PROJECT_ROOT)
+    4. PWD environment variable
+    5. Current working directory (fallback)
+    
+    Args:
+        input_data: Optional stdin JSON data containing workspace information
     
     Returns:
         Path to workspace root
     """
-    # Try common environment variables
-    for env_var in ["WORKSPACE_ROOT", "PROJECT_ROOT", "PWD"]:
-        if env_var in os.environ:
+    # Priority 1: stdin JSON data (most reliable for Cursor/Cline)
+    if input_data:
+        # Cursor format: workspace_roots
+        if "workspace_roots" in input_data and input_data["workspace_roots"]:
+            workspace = input_data["workspace_roots"]
+            if isinstance(workspace, list) and len(workspace) > 0:
+                return Path(workspace[0])
+        # Cline format: workspaceRoots
+        if "workspaceRoots" in input_data and input_data["workspaceRoots"]:
+            workspace = input_data["workspaceRoots"]
+            if isinstance(workspace, list) and len(workspace) > 0:
+                return Path(workspace[0])
+    
+    # Priority 2: Platform-specific environment variables
+    for env_var in ["CURSOR_PROJECT_DIR", "CLAUDE_PROJECT_DIR"]:
+        if env_var in os.environ and os.environ[env_var]:
             return Path(os.environ[env_var])
     
-    # Fallback to current working directory
+    # Priority 3: Generic environment variables
+    for env_var in ["WORKSPACE_ROOT", "PROJECT_ROOT"]:
+        if env_var in os.environ and os.environ[env_var]:
+            return Path(os.environ[env_var])
+    
+    # Priority 4: PWD
+    if "PWD" in os.environ and os.environ["PWD"]:
+        return Path(os.environ["PWD"])
+    
+    # Priority 5: Fallback to current working directory
     return Path.cwd()
 
 
@@ -152,8 +183,8 @@ def main():
             log_hook_end(HOOK_NAME, {}, success=True)
             allow_and_exit()
         
-        # Get workspace root
-        workspace_root = get_workspace_root()
+        # Get workspace root (pass input_data for stdin-based detection)
+        workspace_root = get_workspace_root(input_data)
         log_debug(f"Workspace root: {workspace_root}")
         
         # Get .discuss directory
