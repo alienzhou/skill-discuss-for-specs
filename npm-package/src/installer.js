@@ -47,48 +47,53 @@ import {
 export function listPlatforms(options = {}) {
   newline();
   console.log(colors.bold('Supported Platforms'));
-  console.log(colors.dim('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
   newline();
   
   const detected = detectPlatform();
+  
+  // Table header
+  console.log(colors.dim('  Level  Platform      Description                    Status'));
+  console.log(colors.dim('  ─────  ────────────  ─────────────────────────────  ──────────'));
   
   // Group platforms by level
   const l2Platforms = Object.entries(PLATFORMS).filter(([, config]) => config.level === 'L2');
   const l1Platforms = Object.entries(PLATFORMS).filter(([, config]) => config.level === 'L1');
   
   // L2 Platforms
-  console.log(colors.primary('  L2 Platforms') + colors.dim(' (Skills + Hooks - auto-reminder)'));
-  newline();
-  
   for (const [id, config] of l2Platforms) {
     const isDetected = detected.includes(id);
     const status = isDetected 
       ? colors.success('● detected') 
       : colors.dim('○ not found');
+    const level = colors.primary('L2');
+    const platformId = colors.bold(id.padEnd(12));
+    const description = config.name.padEnd(29);
     
-    console.log(`    ${colors.bold(config.name.padEnd(14))} ${colors.dim(id.padEnd(12))} ${status}`);
-    console.log(`      ${colors.dim(`~/${config.configDir}/${config.skillsDir}/`)}`);
-    newline();
+    console.log(`  ${level}     ${platformId}  ${description}  ${status}`);
   }
   
   // L1 Platforms
-  console.log(colors.primary('  L1 Platforms') + colors.dim(' (Skills only - manual precipitation)'));
-  newline();
-  
   for (const [id, config] of l1Platforms) {
     const isDetected = detected.includes(id);
     const status = isDetected 
       ? colors.success('● detected') 
       : colors.dim('○ not found');
+    const level = colors.dim('L1');
+    const platformId = colors.bold(id.padEnd(12));
+    const description = config.name.padEnd(29);
     
-    console.log(`    ${colors.bold(config.name.padEnd(14))} ${colors.dim(id.padEnd(12))} ${status}`);
-    console.log(`      ${colors.dim(`~/${config.configDir}/${config.skillsDir}/`)}`);
-    newline();
+    console.log(`  ${level}     ${platformId}  ${description}  ${status}`);
   }
   
-  // Summary
-  console.log(colors.dim('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+  newline();
   
+  // Legend
+  console.log(colors.dim('  L2 = Skills + Hooks (auto-reminder support)'));
+  console.log(colors.dim('  L1 = Skills only (manual precipitation)'));
+  
+  newline();
+  
+  // Summary
   if (detected.length > 0) {
     console.log(colors.success(`  ${detected.length} platform(s) detected: `) + 
       detected.map(id => colors.bold(id)).join(', '));
@@ -98,7 +103,7 @@ export function listPlatforms(options = {}) {
   }
   
   newline();
-  console.log(colors.dim('  Usage: discuss-for-specs install [-p <platform>]'));
+  console.log(colors.dim('  Usage: discuss-for-specs install -p <platform>'));
   newline();
 }
 
@@ -127,50 +132,15 @@ export async function install(options = {}) {
   }
   spinner.succeed('Python environment OK');
 
-  // 2. Detect or validate platform
-  let targetPlatform = options.platform;
-  
-  if (!targetPlatform) {
-    const detected = detectPlatform();
-    
-    if (detected.length === 0) {
-      error(
-        'No supported platform detected',
-        'Install a supported AI assistant first, or use --platform flag.\n' +
-        '    Supported: claude-code, cursor, kilocode, opencode, codex'
-      );
-      throw new Error(
-        'No supported platform detected. Please install a supported AI assistant first, ' +
-        'or specify a platform with --platform.'
-      );
-    }
-    
-    if (detected.length === 1) {
-      targetPlatform = detected[0];
-      info(`Detected platform: ${colors.bold(PLATFORMS[targetPlatform].name)}`);
-    } else {
-      // Multiple platforms detected, ask user or use first
-      info('Multiple platforms detected:');
-      detected.forEach(p => console.log(`  ${colors.dim('•')} ${PLATFORMS[p].name}`));
-      newline();
-      info(`Using: ${colors.bold(PLATFORMS[detected[0]].name)}`);
-      console.log(colors.dim('  (Use --platform to specify a different one)'));
-      targetPlatform = detected[0];
-    }
-  }
-
+  // 2. Validate platform (now required)
+  const targetPlatform = options.platform;
   const platformConfig = getPlatformConfig(targetPlatform);
   
   // 3. Handle target directory for project-level installation
   let targetDir = null;
   let isProjectLevel = false;
   
-  // --project-level is shorthand for --target .
-  if (options.projectLevel) {
-    const { resolve } = await import('path');
-    targetDir = resolve('.');
-    isProjectLevel = true;
-  } else if (options.target) {
+  if (options.target) {
     const { resolve } = await import('path');
     targetDir = resolve(options.target.replace(/^~/, process.env.HOME || ''));
     isProjectLevel = true;
@@ -402,45 +372,24 @@ export async function uninstall(options = {}) {
   // Show banner
   showBanner();
 
-  // 1. Detect or validate platform
-  let targetPlatform = options.platform;
-  
-  if (!targetPlatform) {
-    const detected = detectPlatform();
-    
-    if (detected.length === 0) {
-      warning('No supported platform detected');
-      return;
-    }
-    
-    targetPlatform = detected[0];
-    info(`Detected platform: ${colors.bold(PLATFORMS[targetPlatform].name)}`);
-  }
-
+  // 1. Validate platform (now required)
+  const targetPlatform = options.platform;
   const platformConfig = getPlatformConfig(targetPlatform);
+
+  // Show banner
+  showBanner();
+  newline();
+  info(`Uninstalling from ${colors.bold(platformConfig.name)}`);
   
   // Handle target directory for project-level uninstallation
   let targetDir = null;
   let isProjectLevel = false;
   
-  // --project-level is shorthand for --target .
-  if (options.projectLevel) {
-    const { resolve } = await import('path');
-    targetDir = resolve('.');
-    isProjectLevel = true;
-  } else if (options.target) {
+  if (options.target) {
     const { resolve } = await import('path');
     targetDir = resolve(options.target.replace(/^~/, process.env.HOME || ''));
     isProjectLevel = true;
-  }
-  
-  if (isProjectLevel) {
-    newline();
-    info(`Uninstalling from ${colors.bold(platformConfig.name)} (project-level)`);
     console.log(colors.dim(`  Target: ${targetDir}`));
-  } else {
-    newline();
-    info(`Uninstalling from ${colors.bold(platformConfig.name)} (user-level)`);
   }
 
   // 2. Remove Skills
@@ -507,4 +456,120 @@ export async function uninstall(options = {}) {
     'Uninstallation complete!',
     noteMessage
   );
+}
+
+/**
+ * Export skills to a raw directory (without platform structure)
+ * 
+ * This function exports skills directly to the specified directory,
+ * without creating the .{platform}/skills/ structure. Useful for:
+ * - Unsupported platforms where user manages integration manually
+ * - Custom deployment scenarios
+ * - Testing and development
+ * 
+ * @param {string} targetDir - Target directory for export
+ * @param {Object} options - Export options
+ * @param {boolean} options.includeL1Guidance - Include L1 platform guidance in SKILL.md
+ */
+export async function exportSkills(targetDir, options = {}) {
+  // Show banner
+  showBanner();
+  
+  const { resolve } = await import('path');
+  const resolvedDir = resolve(targetDir.replace(/^~/, process.env.HOME || ''));
+  
+  newline();
+  info(`Exporting skills to: ${colors.bold(resolvedDir)}`);
+  
+  // Ensure target directory exists
+  if (!existsSync(resolvedDir)) {
+    ensureDirectory(resolvedDir);
+    info(`Created directory: ${resolvedDir}`);
+  }
+  
+  // Get package root
+  const packageRoot = getPackageRoot();
+  
+  // Use assets directory as the clean source (no platform-specific modifications)
+  const assetsDir = join(packageRoot, 'assets');
+  
+  if (!existsSync(assetsDir)) {
+    error('Assets directory not found', `Expected at: ${assetsDir}`);
+    throw new Error(`Assets directory not found: ${assetsDir}`);
+  }
+  
+  // Copy skills directly to target directory
+  newline();
+  let spinner = createSpinner('Exporting skills...');
+  spinner.start();
+  
+  const skills = ['discuss-for-specs'];
+  const exportedSkills = [];
+  
+  for (const skill of skills) {
+    const srcSkill = join(assetsDir, skill);
+    const destSkill = join(resolvedDir, skill);
+    
+    if (existsSync(srcSkill)) {
+      copyDirectory(srcSkill, destSkill);
+      exportedSkills.push(skill);
+      
+      // Inject L1 guidance if requested
+      if (options.includeL1Guidance) {
+        const skillMdPath = join(destSkill, 'SKILL.md');
+        // L1 guidance is in assets/ directory (copied during build)
+        const l1GuidancePath = join(packageRoot, 'assets', 'l1-guidance.md');
+        
+        if (existsSync(skillMdPath) && existsSync(l1GuidancePath)) {
+          try {
+            const skillContent = readFileSync(skillMdPath, 'utf-8');
+            const l1Guidance = readFileSync(l1GuidancePath, 'utf-8');
+            
+            // Use entire l1-guidance.md content (it's already clean)
+            const guidanceContent = l1Guidance.trim();
+            
+            // Find injection point: after "Your Responsibilities" section
+            const responsibilitiesMarker = '## 🎯 Your Responsibilities';
+            const responsibilitiesIndex = skillContent.indexOf(responsibilitiesMarker);
+            
+            if (responsibilitiesIndex >= 0 && guidanceContent) {
+              // Find the end of "Your Responsibilities" section (next ## or ---)
+              const afterMarker = skillContent.substring(responsibilitiesIndex);
+              const nextSectionMatch = afterMarker.match(/\n(## |---)/);
+              const injectionPoint = nextSectionMatch 
+                ? responsibilitiesIndex + nextSectionMatch.index + 1
+                : responsibilitiesIndex + afterMarker.length;
+              
+              // Inject guidance
+              const before = skillContent.substring(0, injectionPoint);
+              const after = skillContent.substring(injectionPoint);
+              const updatedContent = before + '\n\n' + guidanceContent + '\n\n' + after;
+              
+              writeFileSync(skillMdPath, updatedContent, 'utf-8');
+            }
+          } catch (e) {
+            // Silent - L1 guidance injection is optional
+          }
+        }
+      }
+    }
+  }
+  
+  spinner.succeed('Skills exported');
+  exportedSkills.forEach(skill => success(skill, true));
+  
+  if (options.includeL1Guidance) {
+    success('L1 guidance included', true);
+  }
+  
+  // Show completion message
+  newline();
+  console.log(colors.success('✔') + colors.bold(' Export complete!'));
+  newline();
+  console.log(colors.dim('  Exported to: ') + resolvedDir);
+  console.log(colors.dim('  Skills: ') + exportedSkills.join(', '));
+  newline();
+  console.log(colors.dim('  Note: No hooks installed. For auto-reminder support,'));
+  console.log(colors.dim('  use "install" command with a supported platform.'));
+  newline();
 }

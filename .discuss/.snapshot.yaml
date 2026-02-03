@@ -22,7 +22,7 @@ discussions:
       mtime: 1769786524.0281587
   2026-02-02/v0.3.0-release-planning:
     outline:
-      mtime: 1770025253.6271384
+      mtime: 1770092223.3217154
       change_count: 0
     decisions:
     - name: D01-workspace-detection-improvement.md
@@ -31,6 +31,8 @@ discussions:
       mtime: 1770024196.0060875
     - name: D03-project-level-installation.md
       mtime: 1770025253.6282327
+    - name: D04-cli-simplification-export.md
+      mtime: 1770092249.7530231
     notes:
     - name: project-level-skills-research.md
       mtime: 1770025095.8800292

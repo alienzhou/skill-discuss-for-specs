@@ -197,12 +197,15 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 
 | 平台 | 状态 | 级别 | 安装命令 |
 |------|:----:|:----:|----------|
-| **Claude Code** | ✅ 就绪 | L2 | `npx @vibe-x/discuss-for-specs install --platform claude-code` |
-| **Cursor** | ✅ 就绪 | L2 | `npx @vibe-x/discuss-for-specs install --platform cursor` |
-| **Kilocode** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install --platform kilocode` |
-| **OpenCode** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install --platform opencode` |
-| **Codex CLI** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install --platform codex` |
-| Cline | 🔜 计划中 | L2 | - |
+| **Claude Code** | ✅ 就绪 | L2 | `npx @vibe-x/discuss-for-specs install -p claude-code` |
+| **Cursor** | ✅ 就绪 | L2 | `npx @vibe-x/discuss-for-specs install -p cursor` |
+| **Cline** | ✅ 就绪 | L2 | `npx @vibe-x/discuss-for-specs install -p cline` |
+| **Kilocode** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p kilocode` |
+| **OpenCode** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p opencode` |
+| **Codex CLI** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p codex` |
+| **Trae** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p trae` |
+| **Qoder** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p qoder` |
+| **Roo-Code** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p roo-code` |
 | Windsurf | 🔜 计划中 | - | - |
 
 ### L1 和 L2 有什么区别？
@@ -214,8 +217,8 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 | 决策沉淀 | ✅ | ✅ |
 | **自动提醒 Hooks** | ❌ | ✅ |
 
-- **L2 平台**（Claude Code、Cursor）支持 hooks，自动提醒你沉淀决策
-- **L1 平台**（Kilocode、OpenCode、Codex）拥有完整讨论功能，但需要手动追踪决策
+- **L2 平台**（Claude Code、Cursor、Cline）支持 hooks，自动提醒你沉淀决策
+- **L1 平台**（Kilocode、OpenCode、Codex、Trae、Qoder、Roo-Code）拥有完整讨论功能，但需要手动追踪决策
 
 > 💡 详细架构和 Hook 机制请参阅 [工作原理](docs/HOW-IT-WORKS-zh.md)。
 
@@ -230,18 +233,36 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 #### 方式一：npx（推荐 - 无需安装）
 
 ```bash
-# 自动检测平台
-npx @vibe-x/discuss-for-specs install
-
-# 或指定平台
-npx @vibe-x/discuss-for-specs install --platform claude-code
+# 指定平台安装（必须）
+npx @vibe-x/discuss-for-specs install -p claude-code
+npx @vibe-x/discuss-for-specs install -p cursor
 ```
 
 #### 方式二：全局安装（经常使用推荐）
 
 ```bash
 npm install -g @vibe-x/discuss-for-specs
-discuss-for-specs install --platform cursor
+discuss-for-specs install -p cursor
+```
+
+#### 方式三：项目级安装
+
+```bash
+# 安装到当前目录
+discuss-for-specs install -p cursor --target .
+
+# 安装到指定目录
+discuss-for-specs install -p claude-code --target /path/to/project
+```
+
+#### 方式四：导出到原始目录（用于不支持的平台）
+
+```bash
+# 直接导出技能，不创建平台目录结构
+discuss-for-specs export /my/custom/skills/
+
+# 包含 L1 引导（用于手动沉淀提醒）
+discuss-for-specs export /my/custom/skills/ --include-l1-guidance
 ```
 
 ### 前置要求
@@ -264,7 +285,7 @@ Agent 将引导你进行结构化对话，自动追踪决策和进度。
 ### 卸载
 
 ```bash
-npx @vibe-x/discuss-for-specs uninstall --platform cursor
+npx @vibe-x/discuss-for-specs uninstall -p cursor
 ```
 
 ---
@@ -370,6 +391,6 @@ npx @vibe-x/discuss-for-specs uninstall --platform cursor
 
 ---
 
-**版本**：0.2.0
+**版本**：0.3.0
 **状态**：V1 - 基础版本
 **理念**：通过 AI 引导的结构化讨论，将粗略想法转化为可执行规范。

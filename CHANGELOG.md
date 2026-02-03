@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-03
+
+### Added
+
+- **New platform support** - Added support for 4 additional platforms:
+  - Cline (L2) - Full support with Skills + TaskComplete hook
+  - Trae (L1) - Skills only
+  - Qoder (L1) - Skills only
+  - Roo-Code (L1) - Skills only
+
+- **Export command** - New `export` command for raw directory export
+  - `discuss-for-specs export <dir>` - Export skills directly to target directory
+  - `--include-l1-guidance` - Optional flag to include L1 platform guidance
+  - Useful for unsupported platforms or custom deployment scenarios
+
+- **Workspace detection improvement** - Enhanced workspace root detection
+  - Now supports stdin JSON (`workspace_roots`, `workspaceRoots`) from platforms
+  - Priority-based detection: stdin > environment variables > cwd
+
+- **Integration tests enhancement** - Improved test coverage
+  - Python: 107 tests
+  - Node.js: 61 tests
+
+### Changed
+
+- **CLI simplification** - Streamlined CLI options
+  - Removed `--project-level` flag (use `--target .` instead)
+  - `--platform` is now required for `install` and `uninstall` commands
+  - Unified project-level installation via `--target` flag
+
+- **CLI help output optimization** - Improved help scannability
+  - Added "Get Started" section at top of main help for quick orientation
+  - Simplified platform list in main help (inline format)
+  - Added table format for `platforms` command output
+  - Applied color emphasis to key elements (section headers, commands, platforms, flags)
+  - Reorganized help structure: new users see quick start, experienced users find detailed options in subcommand help
+
+- **SKILL.md workspace guidance** - Updated workspace root guidance in SKILL.md to prevent incorrect `.discuss/` directory creation
+
+### Removed
+
+- **Auto-detect platform behavior** - Removed automatic platform detection for install/uninstall commands
+  - Users must now explicitly specify `--platform` to avoid ambiguity
+  - `discuss-for-specs platforms` command shows available platforms
+
+### Documentation
+
+- Added D04 decision document for CLI simplification and export command
+- Added D05 decision document for CLI help output optimization
+- Updated VERIFICATION.md with new test scenarios
+
 ## [0.2.0] - 2026-02-01
 
 ### Added
@@ -57,5 +108,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform distribution architecture
 - Comprehensive test suite
 
+[0.3.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/releases/tag/v0.1.0

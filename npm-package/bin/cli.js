@@ -6,15 +6,16 @@
  * Cross-platform skills and hooks installer for AI assistants.
  * 
  * Usage:
- *   npx discuss-skills install [--platform <platform>]
- *   npx discuss-skills uninstall [--platform <platform>]
+ *   npx discuss-skills install --platform <platform>
+ *   npx discuss-skills uninstall --platform <platform>
+ *   npx discuss-skills export <dir> [--include-l1-guidance]
  *   npx discuss-skills platforms
  *   npx discuss-skills --version
  */
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { install, uninstall, listPlatforms } from '../src/index.js';
+import { install, uninstall, listPlatforms, exportSkills } from '../src/index.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -27,37 +28,43 @@ const packageJson = JSON.parse(
   readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
 );
 
-// Platform list for help text
-const PLATFORM_HELP = `
-Supported Platforms:
-  L2 (Skills + Hooks):
-    claude-code   Claude Code / Claude Desktop
-    cursor        Cursor Editor
-  L1 (Skills only):
-    kilocode      Kilocode
-    opencode      OpenCode
-    codex         Codex CLI
-`;
+// Build colored help text for main command
+// Note: Colors are applied at runtime, respecting --no-color flag
+const buildMainDescription = () => {
+  const $ = chalk.gray('$');
+  const l2Platforms = ['claude-code', 'cursor', 'cline'].map(p => chalk.green(p)).join(', ');
+  const l1Platforms = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'].map(p => chalk.green(p)).join(', ');
+  
+  return `Cross-platform skills and hooks installer for AI assistants.
+
+${chalk.bold('Get Started:')}
+  ${$} ${chalk.cyan('npx discuss-for-specs install')} ${chalk.yellow('-p')} cursor   ${chalk.gray('# Quick install (no global setup)')}
+  ${$} ${chalk.cyan('discuss-for-specs install')} ${chalk.yellow('-p')} cursor       ${chalk.gray('# If installed globally')}
+
+${chalk.bold('Supported Platforms:')}
+  L2 (auto-reminder):  ${l2Platforms}
+  L1 (skills only):    ${l1Platforms}
+
+  Run '${chalk.cyan('discuss-for-specs platforms')}' for platform details.`;
+};
 
 const program = new Command();
 
+// Apply --no-color early if present in argv
+if (process.argv.includes('--no-color')) {
+  chalk.level = 0;
+}
+
 program
   .name('discuss-for-specs')
-  .description(`Cross-platform skills and hooks installer for AI assistants.
-${PLATFORM_HELP}
-Examples:
-  $ discuss-for-specs install                  # Auto-detect platform
-  $ discuss-for-specs install -p cursor        # Install for Cursor
-  $ discuss-for-specs install -p kilocode      # Install for Kilocode (L1)
-  $ discuss-for-specs platforms                # Show all platforms
-  $ discuss-for-specs uninstall                # Remove installation`)
+  .description(buildMainDescription())
   .version(packageJson.version, '-v, --version', 'Show version number')
   .option('--no-color', 'Disable colored output')
   .addHelpText('after', `
-More info:
+${chalk.bold('More Info:')}
   GitHub:  https://github.com/vibe-x-ai/skill-discuss-for-specs
-  L2 platforms support auto-reminder via hooks
-  L1 platforms provide discussion skills without auto-reminder`);
+
+Run '${chalk.cyan('discuss-for-specs <command> --help')}' for detailed options and examples.`);
 
 // Handle --no-color before any command runs
 program.hook('preAction', (thisCommand) => {
@@ -72,41 +79,37 @@ program.hook('preAction', (thisCommand) => {
 program
   .command('install')
   .description('Install skills and hooks to your environment')
-  .option('-p, --platform <platform>', 'Target platform (claude-code, cursor, kilocode, opencode, codex)')
-  .option('-t, --target <dir>', 'Target project directory for project-level installation')
-  .option('--project-level', 'Install to current directory (shorthand for --target .)')
+  .requiredOption('-p, --platform <platform>', 'Target platform (claude-code, cursor, cline, kilocode, opencode, codex, trae, qoder, roo-code)')
+  .option('-t, --target <dir>', 'Target directory for project-level installation (use "." for current directory)')
   .option('--skip-hooks', 'Skip hooks installation (L2 platforms only)')
   .option('--skip-skills', 'Skip skills installation')
   .option('--stale-threshold <n>', 'Stale detection threshold (0=disabled, default=3)', parseInt)
   .option('-y, --yes', 'Skip confirmation prompts')
   .addHelpText('after', `
-Platform Options:
-  L2 Platforms (with hooks - auto-reminder support):
-    claude-code   ~/.claude/skills/
-    cursor        ~/.cursor/skills/
+${chalk.bold('Platform Options:')}
+  ${chalk.bold('L2 Platforms')} (with hooks - auto-reminder support):
+    ${chalk.green('claude-code')}   ~/.claude/skills/
+    ${chalk.green('cursor')}        ~/.cursor/skills/
+    ${chalk.green('cline')}         ~/.cline/skills/ (hooks: ~/Documents/Cline/Hooks/)
 
-  L1 Platforms (skills only - manual precipitation):
-    kilocode      ~/.kilocode/skills/
-    opencode      ~/.opencode/skill/
-    codex         ~/.codex/skills/
+  ${chalk.bold('L1 Platforms')} (skills only - manual precipitation):
+    ${chalk.green('kilocode')}      ~/.kilocode/skills/
+    ${chalk.green('opencode')}      ~/.opencode/skill/
+    ${chalk.green('codex')}         ~/.codex/skills/
+    ${chalk.green('trae')}          ~/.trae/skills/
+    ${chalk.green('qoder')}         ~/.qoder/skills/
+    ${chalk.green('roo-code')}      ~/.roo/skills/
 
-Installation Modes:
-  (default)           User-level: ~/.{platform}/skills/
-  --project-level     Project-level: ./{platform}/skills/ (current directory)
-  --target <dir>      Custom target: <dir>/.{platform}/skills/
+${chalk.bold('Installation Modes:')}
+  (default)             User-level: ~/.{platform}/skills/
+  ${chalk.yellow('--target')} <dir>      Project-level: <dir>/.{platform}/skills/
+  ${chalk.yellow('--target')} .          Current directory: ./{platform}/skills/
 
-Stale Threshold:
-  --stale-threshold <n>   Number of rounds before reminder (0=disabled, default=3)
-                          0: No stale detection (disabled)
-                          1: Remind after 1 round without update
-                          3: Remind after 3 rounds (default)
-
-Examples:
-  $ discuss-for-specs install                       # Auto-detect, user-level
-  $ discuss-for-specs install -p claude-code        # Install for Claude Code
-  $ discuss-for-specs install --project-level       # Install to current directory
-  $ discuss-for-specs install -t ./my-project       # Install to specific directory
-  $ discuss-for-specs install --stale-threshold 5   # Set threshold to 5 rounds`)
+${chalk.bold('Examples:')}
+  ${chalk.gray('$')} discuss-for-specs install ${chalk.yellow('-p')} claude-code        ${chalk.gray('# User-level')}
+  ${chalk.gray('$')} discuss-for-specs install ${chalk.yellow('-p')} cursor ${chalk.yellow('-t')} .        ${chalk.gray('# Current directory')}
+  ${chalk.gray('$')} discuss-for-specs install ${chalk.yellow('-p')} cursor ${chalk.yellow('-t')} ./proj   ${chalk.gray('# Specific directory')}
+  ${chalk.gray('$')} discuss-for-specs install ${chalk.yellow('-p')} cursor ${chalk.yellow('--stale-threshold')} 5`)
   .action(async (options) => {
     try {
       await install(options);
@@ -120,19 +123,16 @@ Examples:
 program
   .command('uninstall')
   .description('Remove skills and hooks from your environment')
-  .option('-p, --platform <platform>', 'Target platform (claude-code, cursor, kilocode, opencode, codex)')
-  .option('-t, --target <dir>', 'Target project directory for project-level uninstallation')
-  .option('--project-level', 'Uninstall from current directory (shorthand for --target .)')
+  .requiredOption('-p, --platform <platform>', 'Target platform (claude-code, cursor, cline, kilocode, opencode, codex, trae, qoder, roo-code)')
+  .option('-t, --target <dir>', 'Target directory for project-level uninstallation')
   .option('--keep-hooks', 'Keep hooks but remove skills')
   .option('--keep-skills', 'Keep skills but remove hooks')
   .option('-y, --yes', 'Skip confirmation prompts')
   .addHelpText('after', `
-Examples:
-  $ discuss-for-specs uninstall                  # Auto-detect and uninstall (user-level)
-  $ discuss-for-specs uninstall -p cursor        # Uninstall from Cursor
-  $ discuss-for-specs uninstall --project-level  # Uninstall from current directory
-  $ discuss-for-specs uninstall -t ./my-project  # Uninstall from specific directory
-  $ discuss-for-specs uninstall --keep-hooks     # Remove skills only`)
+${chalk.bold('Examples:')}
+  ${chalk.gray('$')} discuss-for-specs uninstall ${chalk.yellow('-p')} cursor          ${chalk.gray('# User-level')}
+  ${chalk.gray('$')} discuss-for-specs uninstall ${chalk.yellow('-p')} cursor ${chalk.yellow('-t')} .     ${chalk.gray('# Current directory')}
+  ${chalk.gray('$')} discuss-for-specs uninstall ${chalk.yellow('-p')} cursor ${chalk.yellow('--keep-hooks')} ${chalk.gray('# Remove skills only')}`)
   .action(async (options) => {
     try {
       await uninstall(options);
@@ -148,7 +148,7 @@ program
   .alias('list')
   .description('List all supported platforms and their detection status')
   .addHelpText('after', `
-This command shows:
+${chalk.bold('This command shows:')}
   - All supported platforms (L1 and L2)
   - Whether each platform is detected on your system
   - Configuration directory locations`)
@@ -162,6 +162,31 @@ program
   .description('Show installation status for all platforms')
   .action(() => {
     listPlatforms({ showStatus: true });
+  });
+
+// Export command - raw directory export without platform structure
+program
+  .command('export <dir>')
+  .description('Export skills to a raw directory (without .{platform}/skills/ structure)')
+  .option('--include-l1-guidance', 'Include L1 platform guidance in SKILL.md')
+  .addHelpText('after', `
+${chalk.bold('Use Cases:')}
+  - Unsupported platforms where you manage integration manually
+  - Custom deployment scenarios
+  - Testing and development
+
+${chalk.gray('Note: No hooks are installed with export. Only skills are copied.')}
+
+${chalk.bold('Examples:')}
+  ${chalk.gray('$')} discuss-for-specs export ./my-skills/
+  ${chalk.gray('$')} discuss-for-specs export /custom/path/ ${chalk.yellow('--include-l1-guidance')}`)
+  .action(async (dir, options) => {
+    try {
+      await exportSkills(dir, options);
+    } catch (err) {
+      console.error(`\n${chalk.red('✖')} ${chalk.bold('Export failed:')} ${err.message}`);
+      process.exit(1);
+    }
   });
 
 program.parse();

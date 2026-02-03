@@ -41,5 +41,5 @@ platforms/*/build/
 npm-package/dist/
 npm-package/hooks/
 npm-package/config/
+npm-package/assets/
 npm-package/node_modules/
-npm-package/package-lock.json

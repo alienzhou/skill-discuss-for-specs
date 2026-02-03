@@ -33,6 +33,50 @@ describe('PLATFORMS constant', () => {
     assert.strictEqual(PLATFORMS['cursor'].configDir, '.cursor');
     assert.strictEqual(PLATFORMS['cursor'].hooksFormat, 'cursor');
   });
+
+  test('contains cline configuration (L2)', () => {
+    assert.ok(PLATFORMS['cline']);
+    assert.strictEqual(PLATFORMS['cline'].name, 'Cline');
+    assert.strictEqual(PLATFORMS['cline'].configDir, '.cline');
+    assert.strictEqual(PLATFORMS['cline'].hooksFormat, 'cline');
+    assert.strictEqual(PLATFORMS['cline'].level, 'L2');
+  });
+
+  test('contains new L1 platforms', () => {
+    // Trae
+    assert.ok(PLATFORMS['trae']);
+    assert.strictEqual(PLATFORMS['trae'].name, 'Trae');
+    assert.strictEqual(PLATFORMS['trae'].configDir, '.trae');
+    assert.strictEqual(PLATFORMS['trae'].level, 'L1');
+    
+    // Qoder
+    assert.ok(PLATFORMS['qoder']);
+    assert.strictEqual(PLATFORMS['qoder'].name, 'Qoder');
+    assert.strictEqual(PLATFORMS['qoder'].configDir, '.qoder');
+    assert.strictEqual(PLATFORMS['qoder'].level, 'L1');
+    
+    // Roo-Code
+    assert.ok(PLATFORMS['roo-code']);
+    assert.strictEqual(PLATFORMS['roo-code'].name, 'Roo-Code');
+    assert.strictEqual(PLATFORMS['roo-code'].configDir, '.roo');
+    assert.strictEqual(PLATFORMS['roo-code'].level, 'L1');
+  });
+
+  test('L2 platforms have hooks support', () => {
+    const l2Platforms = ['claude-code', 'cursor', 'cline'];
+    for (const id of l2Platforms) {
+      assert.strictEqual(PLATFORMS[id].level, 'L2', `${id} should be L2`);
+      assert.ok(PLATFORMS[id].hooksFormat, `${id} should have hooksFormat`);
+    }
+  });
+
+  test('L1 platforms do not have hooks support', () => {
+    const l1Platforms = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
+    for (const id of l1Platforms) {
+      assert.strictEqual(PLATFORMS[id].level, 'L1', `${id} should be L1`);
+      assert.strictEqual(PLATFORMS[id].hooksFormat, null, `${id} should not have hooksFormat`);
+    }
+  });
 });
 
 
@@ -74,10 +118,22 @@ describe('getSkillsDir', () => {
     assert.strictEqual(result, join(home, '.cursor', 'skills'));
   });
 
+  test('returns global skills path for opencode with .config prefix', () => {
+    const result = getSkillsDir('opencode');
+    const home = homedir();
+    assert.strictEqual(result, join(home, '.config', 'opencode', 'skills'));
+  });
+
   test('returns project-level skills path when target provided', () => {
     const targetDir = '/my/project';
     const result = getSkillsDir('claude-code', targetDir);
     assert.strictEqual(result, join(targetDir, '.claude', 'skills'));
+  });
+
+  test('returns project-level skills path for opencode (no .config prefix)', () => {
+    const targetDir = '/my/project';
+    const result = getSkillsDir('opencode', targetDir);
+    assert.strictEqual(result, join(targetDir, '.opencode', 'skills'));
   });
 });
 

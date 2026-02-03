@@ -40,10 +40,13 @@ const HOOKS_DEST = join(PROJECT_ROOT, 'hooks');
 const DIST_DIR = join(PROJECT_ROOT, 'dist');
 
 // Platforms to build for
-const PLATFORMS = ['claude-code', 'cursor', 'kilocode', 'opencode', 'codex'];
+const PLATFORMS = ['claude-code', 'cursor', 'cline', 'kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
 
 // L1 platforms (Skills only, need L1 guidance appended)
-const L1_PLATFORMS = ['kilocode', 'opencode', 'codex'];
+const L1_PLATFORMS = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
+
+// L2 platforms (Skills + Hooks, full support)
+const L2_PLATFORMS = ['claude-code', 'cursor', 'cline'];
 
 // Skills to build (merged into single discuss-for-specs as per D7)
 const SKILLS = ['discuss-for-specs'];
@@ -124,13 +127,15 @@ function buildSkill(skillName, platform) {
   const outputFile = join(outputDir, 'SKILL.md');
   writeFileSync(outputFile, finalContent, 'utf-8');
   
-  // Copy references directory if exists (exclude l1-guidance.md as it's already appended)
+  // Copy references directory if exists
   const refsDir = join(skillSrc, 'references');
   if (existsSync(refsDir)) {
     const refsDestDir = join(outputDir, 'references');
     mkdirSync(refsDestDir, { recursive: true });
     
-    // Copy each file except l1-guidance.md
+    // Copy reference files
+    // - L2 platforms: exclude l1-guidance.md (not needed, have hooks)
+    // - L1 platforms: exclude l1-guidance.md (already appended to SKILL.md)
     const refFiles = readdirSync(refsDir);
     for (const file of refFiles) {
       if (file !== 'l1-guidance.md') {
@@ -217,6 +222,78 @@ function copyConfig() {
 }
 
 /**
+ * Copy shared assets to assets/ directory for export command
+ * 
+ * Creates a clean source of skills without platform-specific modifications:
+ * - Base SKILL.md (no L1 guidance appended)
+ * - references/ directory
+ * - l1-guidance.md (for optional injection)
+ */
+function copyAssets() {
+  console.log('\n📁 Copying assets for export...');
+  
+  const assetsDir = join(PROJECT_ROOT, 'assets');
+  mkdirSync(assetsDir, { recursive: true });
+  
+  // Copy l1-guidance.md
+  const l1GuidanceSrc = join(SKILLS_SRC, 'discuss-for-specs', 'references', 'l1-guidance.md');
+  const l1GuidanceDest = join(assetsDir, 'l1-guidance.md');
+  
+  if (existsSync(l1GuidanceSrc)) {
+    cpSync(l1GuidanceSrc, l1GuidanceDest);
+    console.log('  ✓ l1-guidance.md');
+  }
+  
+  // Copy clean skill source (without L1 guidance injection)
+  for (const skill of SKILLS) {
+    const skillSrc = join(SKILLS_SRC, skill);
+    const skillDest = join(assetsDir, skill);
+    
+    if (!existsSync(skillSrc)) continue;
+    
+    mkdirSync(skillDest, { recursive: true });
+    
+    // Copy SKILL.md with base header (use claude-code header as the base)
+    const skillMd = join(skillSrc, 'SKILL.md');
+    const headerFile = join(skillSrc, 'headers', 'claude-code.yaml');
+    
+    if (existsSync(skillMd)) {
+      let skillContent = readFileSync(skillMd, 'utf-8');
+      let header = '';
+      
+      if (existsSync(headerFile)) {
+        let headerYaml = readFileSync(headerFile, 'utf-8').trim();
+        headerYaml = injectVersion(headerYaml);
+        if (headerYaml.startsWith('---')) {
+          header = headerYaml + '\n\n';
+        } else {
+          header = `---\n${headerYaml}\n---\n\n`;
+        }
+      }
+      
+      const finalContent = header + skillContent;
+      writeFileSync(join(skillDest, 'SKILL.md'), finalContent, 'utf-8');
+      console.log(`  ✓ ${skill}/SKILL.md`);
+    }
+    
+    // Copy references directory (excluding l1-guidance.md, it's at assets root)
+    const refsDir = join(skillSrc, 'references');
+    if (existsSync(refsDir)) {
+      const refsDestDir = join(skillDest, 'references');
+      mkdirSync(refsDestDir, { recursive: true });
+      
+      const refFiles = readdirSync(refsDir);
+      for (const file of refFiles) {
+        if (file !== 'l1-guidance.md') {
+          cpSync(join(refsDir, file), join(refsDestDir, file), { recursive: true });
+        }
+      }
+      console.log(`  ✓ ${skill}/references/`);
+    }
+  }
+}
+
+/**
  * Main build function
  */
 function main() {
@@ -227,6 +304,7 @@ function main() {
   copyHooks();
   buildSkills();
   copyConfig();
+  copyAssets();
   
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('  ✅ Build complete!');

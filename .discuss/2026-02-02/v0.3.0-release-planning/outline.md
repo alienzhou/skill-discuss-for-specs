@@ -3,6 +3,12 @@
 > **Discussion Date**: 2026-02-02
 > **Status**: ✅ Discussion Complete
 
+## 🔵 Current Focus
+(None - Discussion complete for CLI help optimization)
+
+## ⚪ Pending
+(None)
+
 ## ✅ Confirmed
 
 ### Scope for v0.3.0
@@ -16,7 +22,9 @@
 | 3 | Timezone handling | Proper timezone support | - |
 | 4 | Workspace detection improvement | Support stdin data from platforms | [D01](./decisions/D01-workspace-detection-improvement.md) |
 | 5 | SKILL.md workspace root guidance | Add guidance for all platforms | [D02](./decisions/D02-skill-workspace-guidance.md) |
-| 6 | Project-level installation | `--project-level`, `--target` flags for Skills + Hooks | [D03](./decisions/D03-project-level-installation.md) |
+| 6 | Project-level installation | `--target` flag for Skills + Hooks | [D03](./decisions/D03-project-level-installation.md) |
+| 7 | CLI simplification & export command | Remove `--project-level`, add `export` command | [D04](./decisions/D04-cli-simplification-export.md) |
+| 8 | CLI help output optimization | Improve scannability with tiered structure and colors | [D05](./decisions/D05-cli-help-optimization.md) |
 
 #### New Platforms (5 platforms)
 
@@ -53,17 +61,19 @@
 | Cline | `~/Documents/Cline/Hooks/` | `.clinerules/hooks/` | Shell scripts |
 | Gemini CLI | `~/.gemini/settings.json` | `.gemini/settings.json` | JSON |
 
-#### CLI Design
+#### CLI Design (Updated)
 
 ```bash
-# User-level (default)
+# User-level (default, platform required)
 npx @vibe-x/discuss-for-specs install --platform cursor
 
-# Project-level
-npx @vibe-x/discuss-for-specs install --platform cursor --project-level
+# Project-level (use --target instead of --project-level)
+npx @vibe-x/discuss-for-specs install --platform cursor --target .
+npx @vibe-x/discuss-for-specs install --platform claude-code --target /path/to/project
 
-# Custom target
-npx @vibe-x/discuss-for-specs install --target /path/to/project
+# Raw directory export (no platform needed, no hooks)
+npx @vibe-x/discuss-for-specs export /my/custom/skills/
+npx @vibe-x/discuss-for-specs export /my/custom/skills/ --include-l1-guidance
 ```
 
 ## ❌ Rejected
@@ -124,6 +134,7 @@ npx @vibe-x/discuss-for-specs install --target /path/to/project
 | D01 | [Workspace Detection Improvement](./decisions/D01-workspace-detection-improvement.md) | ✅ Confirmed |
 | D02 | [SKILL.md Workspace Guidance](./decisions/D02-skill-workspace-guidance.md) | ✅ Confirmed |
 | D03 | [Project-Level Installation](./decisions/D03-project-level-installation.md) | ✅ Confirmed |
+| D04 | [CLI Simplification & Export Command](./decisions/D04-cli-simplification-export.md) | ✅ Confirmed |
 
 ## Research Notes
 

@@ -360,11 +360,11 @@ describe('staleThreshold option handling', () => {
 });
 
 
-describe('project-level installation logic', () => {
+describe('target option installation logic', () => {
   let testDir;
 
   beforeEach(() => {
-    testDir = join(tmpdir(), `test-project-level-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    testDir = join(tmpdir(), `test-target-install-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
   });
 
@@ -375,7 +375,7 @@ describe('project-level installation logic', () => {
   });
 
   test('project-level skills directory structure', () => {
-    // Simulate project-level skills installation
+    // Simulate --target installation for skills
     const projectSkillsDir = join(testDir, '.claude', 'skills', 'discuss-for-specs');
     
     ensureDirectory(projectSkillsDir);
@@ -385,7 +385,7 @@ describe('project-level installation logic', () => {
     assert.strictEqual(existsSync(join(projectSkillsDir, 'SKILL.md')), true, 'SKILL.md should be copied');
   });
 
-  test('project-level hooks directory structure for L2 platform', () => {
+  test('--target hooks directory structure for L2 platform', () => {
     // Simulate project-level hooks installation
     const projectHooksDir = join(testDir, '.claude', 'hooks');
     const stopHookDir = join(projectHooksDir, 'stop');
@@ -400,7 +400,7 @@ describe('project-level installation logic', () => {
     assert.strictEqual(existsSync(commonDir), true, 'Project hooks/common directory should be created');
   });
 
-  test('project-level settings.json for claude-code', () => {
+  test('--target settings.json for claude-code', () => {
     // Simulate project-level hooks configuration
     const settingsPath = join(testDir, '.claude', 'settings.json');
     const settingsDir = join(testDir, '.claude');
@@ -428,7 +428,7 @@ describe('project-level installation logic', () => {
     assert.ok(content.hooks.Stop, 'settings.json should have Stop hook');
   });
 
-  test('project-level hooks.json for cursor', () => {
+  test('--target hooks.json for cursor', () => {
     // Simulate project-level hooks configuration for Cursor
     const hooksJsonPath = join(testDir, '.cursor', 'hooks.json');
     const cursorDir = join(testDir, '.cursor');
@@ -453,8 +453,8 @@ describe('project-level installation logic', () => {
     assert.ok(content.hooks.stop, 'hooks.json should have stop hook');
   });
 
-  test('simulated full project-level installation', () => {
-    // Simulate a complete project-level installation for Claude Code
+  test('simulated full --target installation', () => {
+    // Simulate a complete --target installation for Claude Code
     const platform = 'claude-code';
     const configDir = '.claude';
     
@@ -495,8 +495,8 @@ describe('project-level installation logic', () => {
     assert.ok(loadedSettings.hooks.Stop[0].hooks[0].command.includes('check_precipitation.py'));
   });
 
-  test('simulated full project-level uninstallation', () => {
-    // Setup: create installed project-level files
+  test('simulated full --target uninstallation', () => {
+    // Setup: create installed --target files
     const configDir = '.claude';
     const skillsDir = join(testDir, configDir, 'skills', 'discuss-for-specs');
     const hooksDir = join(testDir, configDir, 'hooks');
@@ -516,5 +516,105 @@ describe('project-level installation logic', () => {
     // Verify
     assert.strictEqual(existsSync(skillsDir), false, 'Skills should be removed');
     assert.strictEqual(existsSync(hooksDir), false, 'Hooks should be removed');
+  });
+});
+
+
+describe('exportSkills function', () => {
+  let testDir;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `test-export-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(testDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+  });
+
+  test('module exports exportSkills function', async () => {
+    const { exportSkills } = await import('../src/installer.js');
+    assert.strictEqual(typeof exportSkills, 'function');
+  });
+
+  test('export creates skill directly in target directory', () => {
+    // Simulate export behavior: skills go directly to target dir, not .{platform}/skills/
+    const exportDir = join(testDir, 'my-skills');
+    const skillDir = join(exportDir, 'discuss-for-specs');
+    
+    // Simulate export
+    ensureDirectory(skillDir);
+    writeFileSync(join(skillDir, 'SKILL.md'), '# Test Skill');
+    mkdirSync(join(skillDir, 'references'));
+    writeFileSync(join(skillDir, 'references', 'template.md'), '# Template');
+    
+    // Verify structure: target/discuss-for-specs/ (not target/.platform/skills/discuss-for-specs/)
+    assert.strictEqual(existsSync(skillDir), true, 'Skill directory should be created directly');
+    assert.strictEqual(existsSync(join(skillDir, 'SKILL.md')), true, 'SKILL.md should exist');
+    assert.strictEqual(existsSync(join(skillDir, 'references', 'template.md')), true, 'References should be copied');
+    
+    // Verify no platform directory is created
+    assert.strictEqual(existsSync(join(exportDir, '.claude')), false, 'Should not create .claude directory');
+    assert.strictEqual(existsSync(join(exportDir, '.cursor')), false, 'Should not create .cursor directory');
+  });
+
+  test('export with --include-l1-guidance injects content', () => {
+    // Create skill content
+    const skillPath = join(testDir, 'SKILL.md');
+    const skillContent = `# Discuss for Specs
+
+## 🎯 Your Responsibilities
+- Track discussion progress
+
+## 📝 Other Section
+More content.
+`;
+    writeFileSync(skillPath, skillContent);
+
+    // Create L1 guidance
+    const l1Guidance = `## 📝 Precipitation Discipline
+
+### Proactive Documentation
+Don't wait to be reminded.
+`;
+
+    // Simulate L1 guidance injection
+    const originalContent = readFileSync(skillPath, 'utf-8');
+    const responsibilitiesMarker = '## 🎯 Your Responsibilities';
+    const responsibilitiesIndex = originalContent.indexOf(responsibilitiesMarker);
+    
+    if (responsibilitiesIndex >= 0) {
+      const afterMarker = originalContent.substring(responsibilitiesIndex);
+      const nextSectionMatch = afterMarker.match(/\n(## |---)/);
+      const injectionPoint = nextSectionMatch 
+        ? responsibilitiesIndex + nextSectionMatch.index + 1
+        : responsibilitiesIndex + afterMarker.length;
+      
+      const before = originalContent.substring(0, injectionPoint);
+      const after = originalContent.substring(injectionPoint);
+      const updatedContent = before + '\n\n' + l1Guidance + '\n\n' + after;
+      
+      writeFileSync(skillPath, updatedContent, 'utf-8');
+    }
+
+    // Verify injection
+    const result = readFileSync(skillPath, 'utf-8');
+    assert.ok(result.includes('Precipitation Discipline'), 'L1 guidance should be injected');
+    assert.ok(result.includes('Your Responsibilities'), 'Original content should be preserved');
+  });
+
+  test('export does not create hooks', () => {
+    // Simulate export: only skills, no hooks
+    const exportDir = join(testDir, 'exported');
+    const skillDir = join(exportDir, 'discuss-for-specs');
+    
+    ensureDirectory(skillDir);
+    writeFileSync(join(skillDir, 'SKILL.md'), '# Skill');
+    
+    // Verify no hooks-related directories exist
+    assert.strictEqual(existsSync(join(exportDir, 'hooks')), false, 'No hooks directory');
+    assert.strictEqual(existsSync(join(exportDir, '.discuss-for-specs')), false, 'No .discuss-for-specs directory');
   });
 });

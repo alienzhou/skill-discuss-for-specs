@@ -2,7 +2,7 @@
 
 This document provides end-to-end test scenarios to verify that `discuss-for-specs` is correctly installed and functioning.
 
-> **Last Updated**: 2026-01-30
+> **Last Updated**: 2026-02-03
 
 ---
 
@@ -30,9 +30,9 @@ python3 -c "import yaml" && echo "PyYAML OK"
 ### Option A: npm-based Installation (L2 platforms with hooks)
 
 ```bash
-# 1. Install (specify your platform)
-discuss-for-specs install --platform claude-code
-# or: discuss-for-specs install --platform cursor
+# 1. Install (specify your platform - required)
+discuss-for-specs install -p claude-code
+# or: discuss-for-specs install -p cursor
 
 # 2. Verify Skills installation
 ls -la ~/.claude/skills/
@@ -274,15 +274,15 @@ rm .discuss/.snapshot.yaml
 
 ## Scenario 6: L1 Platform Verification (Skills Only)
 
-**Objective**: Verify that L1 platforms (Kilocode, OpenCode, Codex CLI) work correctly without hooks.
+**Objective**: Verify that L1 platforms (Kilocode, OpenCode, Codex CLI, Trae, Qoder, Roo-Code) work correctly without hooks.
 
-> **Note**: L1 platforms should be installed using npm package with `--platform` flag.
+> **Note**: L1 platforms should be installed using npm package with `-p` flag.
 
 ### Steps
 
 ```bash
 # 1. Install for L1 platform (e.g., kilocode)
-npx @vibe-x/discuss-for-specs install --platform kilocode
+npx @vibe-x/discuss-for-specs install -p kilocode
 
 # 2. Verify skill files
 ls -la ~/.kilocode/skills/discuss-for-specs/
@@ -303,12 +303,91 @@ For L1 platforms:
 
 ### L1 vs L2 Comparison
 
-| Feature | L1 (Kilocode, OpenCode, Codex) | L2 (Claude Code, Cursor) |
-|---------|--------------------------------|--------------------------|
+| Feature | L1 (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code) | L2 (Claude Code, Cursor, Cline) |
+|---------|-------------------------------------------------------|--------------------------------|
 | Skills | ✅ Installed | ✅ Installed |
 | Hooks | ❌ Not installed | ✅ Installed |
 | Auto-reminders | ❌ Manual only | ✅ Automatic |
 | Installation | npm (skills only) | npm (full) |
+
+---
+
+## Scenario 7: Project-Level Installation (--target)
+
+**Objective**: Verify installation to a specific project directory using `--target`.
+
+### Steps
+
+```bash
+# 1. Create test project
+mkdir -p ~/test-target-project
+cd ~/test-target-project
+
+# 2. Install to current directory
+discuss-for-specs install -p cursor --target .
+
+# 3. Verify skills in project directory
+ls -la .cursor/skills/discuss-for-specs/
+# Expected: SKILL.md exists
+
+# 4. Verify hooks configuration in project directory
+cat .cursor/hooks.json
+# Expected: stop hook configured
+
+# 5. Uninstall
+discuss-for-specs uninstall -p cursor --target .
+
+# 6. Verify cleanup
+ls .cursor/skills/
+# Expected: discuss-for-specs directory removed
+```
+
+### Expected Behavior
+
+1. Skills installed to `.cursor/skills/discuss-for-specs/` in current directory
+2. Hooks configured in `.cursor/hooks.json`
+3. Uninstall removes only the skill and hooks configuration
+
+---
+
+## Scenario 8: Export Command Verification
+
+**Objective**: Verify the `export` command for raw directory export.
+
+### Steps
+
+```bash
+# 1. Create target directory
+mkdir -p /tmp/my-skills
+
+# 2. Export skills
+discuss-for-specs export /tmp/my-skills/
+
+# 3. Verify skill exported directly (no .platform/skills/ structure)
+ls -la /tmp/my-skills/discuss-for-specs/
+# Expected: SKILL.md, references/ directory
+
+# 4. Verify no platform directory created
+ls /tmp/my-skills/ | grep -E "^\."
+# Expected: No .claude, .cursor, etc. directories
+
+# 5. Test with L1 guidance
+mkdir -p /tmp/my-skills-l1
+discuss-for-specs export /tmp/my-skills-l1/ --include-l1-guidance
+
+# 6. Verify L1 guidance included
+grep -c "Precipitation Discipline" /tmp/my-skills-l1/discuss-for-specs/SKILL.md
+# Expected: 1 or more matches
+
+# 7. Cleanup
+rm -rf /tmp/my-skills /tmp/my-skills-l1
+```
+
+### Expected Behavior
+
+1. Skills exported directly to `<target>/discuss-for-specs/` (no platform structure)
+2. No hooks installed or configured
+3. `--include-l1-guidance` injects L1 precipitation guidance into SKILL.md
 
 ---
 

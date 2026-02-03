@@ -199,12 +199,15 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 
 | Platform              |   Status   | Level | Install Command                                                  |
 | --------------------- | :--------: | :---: | ---------------------------------------------------------------- |
-| **Claude Code** |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install --platform claude-code` |
-| **Cursor**      |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install --platform cursor`      |
-| **Kilocode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform kilocode`    |
-| **OpenCode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform opencode`    |
-| **Codex CLI**   |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install --platform codex`       |
-| Cline                 | 🔜 Planned |  L2  | -                                                                |
+| **Claude Code** |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install -p claude-code` |
+| **Cursor**      |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install -p cursor`      |
+| **Cline**       |  ✅ Ready  |  L2  | `npx @vibe-x/discuss-for-specs install -p cline`       |
+| **Kilocode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p kilocode`    |
+| **OpenCode**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p opencode`    |
+| **Codex CLI**   |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p codex`       |
+| **Trae**        |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p trae`        |
+| **Qoder**       |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p qoder`       |
+| **Roo-Code**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p roo-code`    |
 | Windsurf              | 🔜 Planned |   -   | -                                                                |
 
 ### What's the difference between L1 and L2?
@@ -216,8 +219,8 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 | Decision precipitation        |      ✅      |      ✅      |
 | **Auto-reminder hooks** |      ❌      |      ✅      |
 
-- **L2 platforms** (Claude Code, Cursor) support hooks that automatically remind you to precipitate decisions
-- **L1 platforms** (Kilocode, OpenCode, Codex) have full discussion features but require manual decision tracking
+- **L2 platforms** (Claude Code, Cursor, Cline) support hooks that automatically remind you to precipitate decisions
+- **L1 platforms** (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code) have full discussion features but require manual decision tracking
 
 > 💡 For detailed architecture and hook mechanisms, see [How It Works](docs/HOW-IT-WORKS.md).
 
@@ -232,18 +235,36 @@ Choose the installation method that works best for you:
 #### Option 1: npx (Recommended - no install needed)
 
 ```bash
-# Auto-detect your platform
-npx @vibe-x/discuss-for-specs install
-
-# Or specify platform explicitly
-npx @vibe-x/discuss-for-specs install --platform claude-code
+# Specify platform explicitly (required)
+npx @vibe-x/discuss-for-specs install -p claude-code
+npx @vibe-x/discuss-for-specs install -p cursor
 ```
 
 #### Option 2: Global install (for frequent use)
 
 ```bash
 npm install -g @vibe-x/discuss-for-specs
-discuss-for-specs install --platform cursor
+discuss-for-specs install -p cursor
+```
+
+#### Option 3: Project-level installation
+
+```bash
+# Install to current directory
+discuss-for-specs install -p cursor --target .
+
+# Install to specific directory
+discuss-for-specs install -p claude-code --target /path/to/project
+```
+
+#### Option 4: Export to raw directory (for unsupported platforms)
+
+```bash
+# Export skills directly without platform structure
+discuss-for-specs export /my/custom/skills/
+
+# Include L1 guidance for manual precipitation
+discuss-for-specs export /my/custom/skills/ --include-l1-guidance
 ```
 
 ### Requirements
@@ -372,6 +393,6 @@ Built on insights from the Claude Skills ecosystem, Spec Driven Development prac
 
 ---
 
-**Version**: 0.2.0
+**Version**: 0.3.0
 **Status**: V1 - Foundation
 **Philosophy**: Transform rough ideas into actionable specifications through AI-guided structured discussion.

@@ -2,8 +2,8 @@
  * Platform configuration management
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, chmodSync } from 'fs';
+import { join, dirname } from 'path';
 import { getHomeDir, getHooksDir } from './utils.js';
 
 /**
@@ -26,6 +26,14 @@ export const PLATFORMS = {
     hooksFormat: 'cursor',
     level: 'L2'
   },
+  'cline': {
+    name: 'Cline',
+    configDir: '.cline',
+    skillsDir: 'skills',
+    settingsFile: null,  // Cline uses shell scripts in Hooks/ directory
+    hooksFormat: 'cline',
+    level: 'L2'
+  },
   'kilocode': {
     name: 'Kilocode',
     configDir: '.kilocode',
@@ -37,7 +45,8 @@ export const PLATFORMS = {
   'opencode': {
     name: 'OpenCode',
     configDir: '.opencode',
-    skillsDir: 'skill',
+    globalConfigDir: '.config/opencode',
+    skillsDir: 'skills',
     settingsFile: null,
     hooksFormat: null,
     level: 'L1'
@@ -45,6 +54,30 @@ export const PLATFORMS = {
   'codex': {
     name: 'Codex CLI',
     configDir: '.codex',
+    skillsDir: 'skills',
+    settingsFile: null,
+    hooksFormat: null,
+    level: 'L1'
+  },
+  'trae': {
+    name: 'Trae',
+    configDir: '.trae',
+    skillsDir: 'skills',
+    settingsFile: null,
+    hooksFormat: null,
+    level: 'L1'
+  },
+  'qoder': {
+    name: 'Qoder',
+    configDir: '.qoder',
+    skillsDir: 'skills',
+    settingsFile: null,
+    hooksFormat: null,
+    level: 'L1'
+  },
+  'roo-code': {
+    name: 'Roo-Code',
+    configDir: '.roo',
     skillsDir: 'skills',
     settingsFile: null,
     hooksFormat: null,
@@ -100,8 +133,10 @@ export function getSkillsDir(platformId, targetDir = null) {
     return join(targetDir, config.configDir, config.skillsDir);
   }
   
-  // Global installation: install to ~/.cursor/skills or ~/.claude/skills
-  return join(getHomeDir(), config.configDir, config.skillsDir);
+  // Global installation: use globalConfigDir if specified, otherwise configDir
+  // e.g., OpenCode uses ~/.config/opencode/skills instead of ~/.opencode/skills
+  const globalDir = config.globalConfigDir || config.configDir;
+  return join(getHomeDir(), globalDir, config.skillsDir);
 }
 
 /**
@@ -126,8 +161,8 @@ export function getSettingsPath(platformId, targetDir = null) {
 /**
  * Check if platform supports stop hook (L2 capability)
  * 
- * L2 platforms (claude-code, cursor) support stop hook.
- * L1 platforms (kilocode, opencode, codex) do not have hooks.
+ * L2 platforms (claude-code, cursor, cline) support stop hook.
+ * L1 platforms (kilocode, opencode, codex, trae, qoder, roo-code) do not have hooks.
  * 
  * @param {string} platformId - Platform ID
  * @returns {boolean} True if platform supports stop hook
@@ -171,6 +206,24 @@ function generateCursorHooksConfig(hooksDir) {
 }
 
 /**
+ * Generate hooks script for Cline (TaskComplete hook)
+ * 
+ * Cline uses shell scripts in ~/Documents/Cline/Hooks/ directory
+ * with naming convention: task_complete.sh
+ * 
+ * @param {string} hooksDir - Hooks directory path
+ * @returns {string} Shell script content
+ */
+function generateClineHooksScript(hooksDir) {
+  return `#!/bin/bash
+# Cline TaskComplete hook for discuss-for-specs
+# This script is called when Cline completes a task
+
+python3 "${join(hooksDir, 'stop', 'check_precipitation.py')}"
+`;
+}
+
+/**
  * Get project-level hooks directory
  * 
  * @param {string} platformId - Platform ID
@@ -200,12 +253,11 @@ export function installHooksConfig(platformId, options = {}) {
     return null;
   }
   
-  const settingsPath = getSettingsPath(platformId, targetDir);
-  
   // Determine the hooks script path to use in configuration
   const effectiveHooksDir = hooksDir || getHooksDir();
 
   if (config.hooksFormat === 'claude-code') {
+    const settingsPath = getSettingsPath(platformId, targetDir);
     // Claude Code: merge into existing settings.json
     let settings = {};
     
@@ -224,18 +276,18 @@ export function installHooksConfig(platformId, options = {}) {
     };
 
     // Ensure parent directory exists for project-level installation
-    const { dirname } = require('path');
     const parentDir = dirname(settingsPath);
     if (!existsSync(parentDir)) {
-      const { mkdirSync } = require('fs');
       mkdirSync(parentDir, { recursive: true });
     }
 
     writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
     // Note: caller handles the success message
+    return settingsPath;
     
   } else if (config.hooksFormat === 'cursor') {
     // Cursor: create/update hooks.json
+    const settingsPath = getSettingsPath(platformId, targetDir);
     let hooksConfig = { version: 1, hooks: {} };
     
     if (existsSync(settingsPath)) {
@@ -253,18 +305,49 @@ export function installHooksConfig(platformId, options = {}) {
     };
 
     // Ensure parent directory exists for project-level installation
-    const { dirname } = require('path');
     const parentDir = dirname(settingsPath);
     if (!existsSync(parentDir)) {
-      const { mkdirSync } = require('fs');
       mkdirSync(parentDir, { recursive: true });
     }
 
     writeFileSync(settingsPath, JSON.stringify(hooksConfig, null, 2), 'utf-8');
     // Note: caller handles the success message
+    return settingsPath;
+  } else if (config.hooksFormat === 'cline') {
+    // Cline: create shell script in Hooks directory
+    // User-level: ~/Documents/Cline/Hooks/task_complete.sh
+    // Project-level: .clinerules/hooks/task_complete.sh
+    
+    let clineHooksDir;
+    if (targetDir) {
+      // Project-level
+      clineHooksDir = join(targetDir, '.clinerules', 'hooks');
+    } else {
+      // User-level (~/Documents/Cline/Hooks/)
+      clineHooksDir = join(getHomeDir(), 'Documents', 'Cline', 'Hooks');
+    }
+    
+    // Ensure hooks directory exists
+    if (!existsSync(clineHooksDir)) {
+      mkdirSync(clineHooksDir, { recursive: true });
+    }
+    
+    const scriptPath = join(clineHooksDir, 'task_complete.sh');
+    const scriptContent = generateClineHooksScript(effectiveHooksDir);
+    
+    writeFileSync(scriptPath, scriptContent, 'utf-8');
+    
+    // Make script executable
+    try {
+      chmodSync(scriptPath, 0o755);
+    } catch (e) {
+      console.warn(`Warning: Could not make ${scriptPath} executable`);
+    }
+    
+    return scriptPath;
   }
   
-  return settingsPath;
+  return null;
 }
 
 /**
