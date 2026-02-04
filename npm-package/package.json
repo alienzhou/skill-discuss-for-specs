@@ -21,6 +21,9 @@
   ],
   "author": "zhouhongxuan",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vibe-x-ai/skill-discuss-for-specs.git"
