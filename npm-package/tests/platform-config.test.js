@@ -60,6 +60,12 @@ describe('PLATFORMS constant', () => {
     assert.strictEqual(PLATFORMS['roo-code'].name, 'Roo-Code');
     assert.strictEqual(PLATFORMS['roo-code'].configDir, '.roo');
     assert.strictEqual(PLATFORMS['roo-code'].level, 'L1');
+    
+    // CodeFlicker
+    assert.ok(PLATFORMS['codeflicker']);
+    assert.strictEqual(PLATFORMS['codeflicker'].name, 'CodeFlicker');
+    assert.strictEqual(PLATFORMS['codeflicker'].configDir, '.codeflicker');
+    assert.strictEqual(PLATFORMS['codeflicker'].level, 'L1');
   });
 
   test('L2 platforms have hooks support', () => {
@@ -71,7 +77,7 @@ describe('PLATFORMS constant', () => {
   });
 
   test('L1 platforms do not have hooks support', () => {
-    const l1Platforms = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
+    const l1Platforms = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code', 'codeflicker'];
     for (const id of l1Platforms) {
       assert.strictEqual(PLATFORMS[id].level, 'L1', `${id} should be L1`);
       assert.strictEqual(PLATFORMS[id].hooksFormat, null, `${id} should not have hooksFormat`);

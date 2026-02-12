@@ -206,6 +206,7 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 | **Trae** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p trae` |
 | **Qoder** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p qoder` |
 | **Roo-Code** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p roo-code` |
+| **CodeFlicker** | ✅ 就绪 | L1 | `npx @vibe-x/discuss-for-specs install -p codeflicker` |
 | Windsurf | 🔜 计划中 | - | - |
 
 ### L1 和 L2 有什么区别？
@@ -218,7 +219,7 @@ AI ────►  "很好。对于读多的 API 缓存，你可能没考虑过
 | **自动提醒 Hooks** | ❌ | ✅ |
 
 - **L2 平台**（Claude Code、Cursor、Cline）支持 hooks，自动提醒你沉淀决策
-- **L1 平台**（Kilocode、OpenCode、Codex、Trae、Qoder、Roo-Code）拥有完整讨论功能，但需要手动追踪决策
+- **L1 平台**（Kilocode、OpenCode、Codex、Trae、Qoder、Roo-Code、CodeFlicker）拥有完整讨论功能，但需要手动追踪决策
 
 > 💡 详细架构和 Hook 机制请参阅 [工作原理](docs/HOW-IT-WORKS-zh.md)。
 

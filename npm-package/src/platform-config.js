@@ -82,6 +82,14 @@ export const PLATFORMS = {
     settingsFile: null,
     hooksFormat: null,
     level: 'L1'
+  },
+  'codeflicker': {
+    name: 'CodeFlicker',
+    configDir: '.codeflicker',
+    skillsDir: 'skills',
+    settingsFile: null,
+    hooksFormat: null,
+    level: 'L1'
   }
 };
 
@@ -162,7 +170,7 @@ export function getSettingsPath(platformId, targetDir = null) {
  * Check if platform supports stop hook (L2 capability)
  * 
  * L2 platforms (claude-code, cursor, cline) support stop hook.
- * L1 platforms (kilocode, opencode, codex, trae, qoder, roo-code) do not have hooks.
+ * L1 platforms (kilocode, opencode, codex, trae, qoder, roo-code, codeflicker) do not have hooks.
  * 
  * @param {string} platformId - Platform ID
  * @returns {boolean} True if platform supports stop hook

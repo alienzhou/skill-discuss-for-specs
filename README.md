@@ -208,6 +208,7 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 | **Trae**        |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p trae`        |
 | **Qoder**       |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p qoder`       |
 | **Roo-Code**    |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p roo-code`    |
+| **CodeFlicker** |  ✅ Ready  |  L1  | `npx @vibe-x/discuss-for-specs install -p codeflicker` |
 | Windsurf              | 🔜 Planned |   -   | -                                                                |
 
 ### What's the difference between L1 and L2?
@@ -220,7 +221,7 @@ Use Discussion Mode whenever you need to clarify and refine ideas:
 | **Auto-reminder hooks** |      ❌      |      ✅      |
 
 - **L2 platforms** (Claude Code, Cursor, Cline) support hooks that automatically remind you to precipitate decisions
-- **L1 platforms** (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code) have full discussion features but require manual decision tracking
+- **L1 platforms** (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code, CodeFlicker) have full discussion features but require manual decision tracking
 
 > 💡 For detailed architecture and hook mechanisms, see [How It Works](docs/HOW-IT-WORKS.md).
 

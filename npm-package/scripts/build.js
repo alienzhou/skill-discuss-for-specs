@@ -40,10 +40,10 @@ const HOOKS_DEST = join(PROJECT_ROOT, 'hooks');
 const DIST_DIR = join(PROJECT_ROOT, 'dist');
 
 // Platforms to build for
-const PLATFORMS = ['claude-code', 'cursor', 'cline', 'kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
+const PLATFORMS = ['claude-code', 'cursor', 'cline', 'kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code', 'codeflicker'];
 
 // L1 platforms (Skills only, need L1 guidance appended)
-const L1_PLATFORMS = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code'];
+const L1_PLATFORMS = ['kilocode', 'opencode', 'codex', 'trae', 'qoder', 'roo-code', 'codeflicker'];
 
 // L2 platforms (Skills + Hooks, full support)
 const L2_PLATFORMS = ['claude-code', 'cursor', 'cline'];

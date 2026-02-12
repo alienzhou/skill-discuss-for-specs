@@ -274,7 +274,7 @@ rm .discuss/.snapshot.yaml
 
 ## Scenario 6: L1 Platform Verification (Skills Only)
 
-**Objective**: Verify that L1 platforms (Kilocode, OpenCode, Codex CLI, Trae, Qoder, Roo-Code) work correctly without hooks.
+**Objective**: Verify that L1 platforms (Kilocode, OpenCode, Codex CLI, Trae, Qoder, Roo-Code, CodeFlicker) work correctly without hooks.
 
 > **Note**: L1 platforms should be installed using npm package with `-p` flag.
 
@@ -303,7 +303,7 @@ For L1 platforms:
 
 ### L1 vs L2 Comparison
 
-| Feature | L1 (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code) | L2 (Claude Code, Cursor, Cline) |
+| Feature | L1 (Kilocode, OpenCode, Codex, Trae, Qoder, Roo-Code, CodeFlicker) | L2 (Claude Code, Cursor, Cline) |
 |---------|-------------------------------------------------------|--------------------------------|
 | Skills | ✅ Installed | ✅ Installed |
 | Hooks | ❌ Not installed | ✅ Installed |
