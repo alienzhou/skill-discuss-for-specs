@@ -62,7 +62,7 @@ program
   .option('--no-color', 'Disable colored output')
   .addHelpText('after', `
 ${chalk.bold('More Info:')}
-  GitHub:  https://github.com/vibe-x-ai/skill-discuss-for-specs
+  GitHub:  https://github.com/alienzhou/skill-discuss-for-specs
 
 Run '${chalk.cyan('discuss-for-specs <command> --help')}' for detailed options and examples.`);
 

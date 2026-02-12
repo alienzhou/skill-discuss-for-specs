@@ -116,6 +116,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform distribution architecture
 - Comprehensive test suite
 
-[0.3.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/vibe-x-ai/skill-discuss-for-specs/releases/tag/v0.1.0
+[0.3.0]: https://github.com/alienzhou/skill-discuss-for-specs/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/alienzhou/skill-discuss-for-specs/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/alienzhou/skill-discuss-for-specs/releases/tag/v0.1.0

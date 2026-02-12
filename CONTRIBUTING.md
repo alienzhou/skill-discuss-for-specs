@@ -14,7 +14,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ```bash
 # Clone the repository
-git clone git@github.com:vibe-x-ai/skill-discuss-for-specs.git
+git clone git@github.com:alienzhou/skill-discuss-for-specs.git
 cd skill-discuss-for-specs
 
 # Install Python dependencies (runtime + dev)
@@ -137,6 +137,6 @@ Hooks are Python scripts in `hooks/`:
 
 ## Questions?
 
-- Check existing [issues](https://github.com/vibe-x-ai/skill-discuss-for-specs/issues)
+- Check existing [issues](https://github.com/alienzhou/skill-discuss-for-specs/issues)
 - Read the [documentation](docs/)
 - Open a new issue for discussion

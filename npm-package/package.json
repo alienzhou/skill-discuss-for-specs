@@ -1,6 +1,6 @@
 {
   "name": "@vibe-x/discuss-for-specs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Cross-platform skills and hooks for AI-powered discussion mode. Supports Claude Code, Cursor, Cline, Kilocode, OpenCode, Codex CLI, Trae, Qoder, and Roo-Code.",
   "keywords": [
     "claude-code",
@@ -26,11 +26,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vibe-x-ai/skill-discuss-for-specs.git"
+    "url": "git+https://github.com/alienzhou/skill-discuss-for-specs.git"
   },
-  "homepage": "https://github.com/vibe-x-ai/skill-discuss-for-specs#readme",
+  "homepage": "https://github.com/alienzhou/skill-discuss-for-specs#readme",
   "bugs": {
-    "url": "https://github.com/vibe-x-ai/skill-discuss-for-specs/issues"
+    "url": "https://github.com/alienzhou/skill-discuss-for-specs/issues"
   },
   "bin": {
     "discuss-for-specs": "./bin/cli.js"
