@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-02-24
+
+### Added
+
+- **Config command** - New `config` command for updating `.discuss/.snapshot.yaml` without manual editing
+  - `discuss-for-specs config` - Show current config
+  - `discuss-for-specs config --stale-threshold <n>` - Set reminder threshold (0=disabled)
+  - `discuss-for-specs config -t <dir>` - Target specific project directory
+
 ## [0.4.0] - 2026-02-12
 
 ### Added
@@ -116,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform distribution architecture
 - Comprehensive test suite
 
+[0.4.2]: https://github.com/alienzhou/skill-discuss-for-specs/compare/v0.4.1...v0.4.2
 [0.3.0]: https://github.com/alienzhou/skill-discuss-for-specs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/alienzhou/skill-discuss-for-specs/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/alienzhou/skill-discuss-for-specs/releases/tag/v0.1.0
