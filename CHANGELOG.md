@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-24
+
+### Changed
+
+- **Directory structure migration** - Migrated all installation directories to unified `.vibe-x/discuss-for-specs` namespace
+  - User-level hooks: `~/.vibe-x/discuss-for-specs/hooks/`
+  - User-level logs: `~/.vibe-x/discuss-for-specs/logs/` (unified for all installation modes)
+  - Project-level hooks: `${projectDir}/.vibe-x/discuss-for-specs/hooks/`
+  - Project-level hooks now use unified structure regardless of platform
+
+- **Automatic migration on upgrade** - Added `cleanupOldHooksConfig()` to automatically remove old hooks configuration during upgrade
+  - Prevents duplicate hook triggers when upgrading from older versions
+  - Cleans up references to old path `~/.discuss-for-specs/hooks/` in platform settings
+
+### Breaking Changes
+
+- Old installation path `~/.discuss-for-specs/` is no longer used
+- Old project-level hooks path `${projectDir}/.{platform}/hooks/` is replaced with `${projectDir}/.vibe-x/discuss-for-specs/hooks/`
+- Upgrade will automatically remove old hooks configuration to prevent duplicate triggers
+
 ## [0.4.2] - 2026-02-24
 
 ### Added
