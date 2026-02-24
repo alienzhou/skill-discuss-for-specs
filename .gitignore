@@ -42,4 +42,5 @@ npm-package/dist/
 npm-package/hooks/
 npm-package/config/
 npm-package/assets/
+npm-package/README.md
 npm-package/node_modules/

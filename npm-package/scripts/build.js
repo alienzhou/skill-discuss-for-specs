@@ -294,6 +294,46 @@ function copyAssets() {
 }
 
 /**
+ * Copy README.md from repository root to npm-package for NPM publishing.
+ * Rewrites relative paths to absolute GitHub URLs so images and links
+ * render correctly on npmjs.com.
+ */
+function copyReadme() {
+  console.log('\n📄 Copying README...');
+  
+  const readmeSrc = join(REPO_ROOT, 'README.md');
+  const readmeDest = join(PROJECT_ROOT, 'README.md');
+  
+  if (!existsSync(readmeSrc)) {
+    console.warn('  ⚠ README.md not found at repository root');
+    return;
+  }
+
+  const repoUrl = packageJson.repository?.url?.replace(/^git\+/, '').replace(/\.git$/, '') 
+    || 'https://github.com/alienzhou/skill-discuss-for-specs';
+  const branch = 'main';
+  const rawBase = repoUrl.replace('github.com', 'raw.githubusercontent.com') + `/${branch}/`;
+  const blobBase = `${repoUrl}/blob/${branch}/`;
+
+  let content = readFileSync(readmeSrc, 'utf-8');
+
+  // ![alt](./path) or ![alt](path) -> absolute raw URL (for images)
+  content = content.replace(
+    /!\[([^\]]*)\]\((?!https?:\/\/)\.?\/?([^)]+)\)/g,
+    (_, alt, path) => `![${alt}](${rawBase}${path})`
+  );
+
+  // [text](./path) or [text](path) that are not images and not anchors -> absolute blob URL
+  content = content.replace(
+    /(?<!!)\[([^\]]*)\]\((?!https?:\/\/)(?!#)\.?\/?([^)]+)\)/g,
+    (_, text, path) => `[${text}](${blobBase}${path})`
+  );
+
+  writeFileSync(readmeDest, content, 'utf-8');
+  console.log('  ✓ README.md (with absolute URLs for npmjs.com)');
+}
+
+/**
  * Main build function
  */
 function main() {
@@ -305,6 +345,7 @@ function main() {
   buildSkills();
   copyConfig();
   copyAssets();
+  copyReadme();
   
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('  ✅ Build complete!');
