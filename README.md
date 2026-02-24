@@ -64,6 +64,10 @@ All discussions are organized into structured files:
     └── D03-ttl-strategy.md
 ```
 
+> Click the image below to watch the demo video
+>
+> [![Watch the Demo](./assets/cover.jpg)](https://s16-def.ap4r.com/kos/s101/nlav112218/mengshou/use-discuss-for-specs.0242e2cac0963606.mp4)
+
 ---
 
 ## 📖 More Installation Options
@@ -415,12 +419,6 @@ Contributions are welcome! This is V1 - foundation. We're iterating based on rea
 ## 🙏 Acknowledgments
 
 Built on insights from the Claude Skills ecosystem, Spec Driven Development practices, and cross-platform IDE extension architectures.
-
----
-
-> Click the image below to watch the demo video
-
-[![Watch the Demo](./assets/cover.jpg)](https://s16-def.ap4r.com/kos/s101/nlav112218/mengshou/use-discuss-for-specs.0242e2cac0963606.mp4)
 
 ---
 
