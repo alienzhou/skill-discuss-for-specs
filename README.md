@@ -331,6 +331,19 @@ config:
   stale_threshold: 3      # Outline changes before gentle reminder
 ```
 
+**Update config via CLI:**
+
+```bash
+# Show current config
+discuss-for-specs config
+
+# Set stale threshold (0=disabled)
+discuss-for-specs config --stale-threshold 5
+
+# For a specific project
+discuss-for-specs config -t /path/to/project --stale-threshold 5
+```
+
 For detailed configuration options, see [How It Works](docs/HOW-IT-WORKS.md#snapshotyaml).
 
 ---
@@ -393,6 +406,9 @@ cd .. && python -m pytest tests/
 ```bash
 # List supported platforms
 npx @vibe-x/discuss-for-specs platforms
+
+# Update config
+npx @vibe-x/discuss-for-specs config --stale-threshold 5
 
 # Install with options
 npx @vibe-x/discuss-for-specs install --platform cursor --skip-hooks

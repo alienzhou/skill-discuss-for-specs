@@ -15,7 +15,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { install, uninstall, listPlatforms, exportSkills } from '../src/index.js';
+import { install, uninstall, listPlatforms, exportSkills, runConfigCommand } from '../src/index.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -162,6 +162,44 @@ program
   .description('Show installation status for all platforms')
   .action(() => {
     listPlatforms({ showStatus: true });
+  });
+
+// Config command - update or show .discuss/.snapshot.yaml config
+program
+  .command('config')
+  .description('Update or show discussion config (.discuss/.snapshot.yaml)')
+  .option('-t, --target <dir>', 'Project directory (default: current directory)')
+  .option('--stale-threshold <n>', 'Outline changes before reminder (0=disabled)', parseInt)
+  .addHelpText('after', `
+${chalk.bold('Examples:')}
+  ${chalk.gray('$')} discuss-for-specs config                    ${chalk.gray('# Show current config')}
+  ${chalk.gray('$')} discuss-for-specs config ${chalk.yellow('--stale-threshold')} 5   ${chalk.gray('# Set threshold to 5')}
+  ${chalk.gray('$')} discuss-for-specs config ${chalk.yellow('-t')} . ${chalk.yellow('--stale-threshold')} 0  ${chalk.gray('# Disable reminder')}`)
+  .action(async (options) => {
+    try {
+      const result = runConfigCommand({
+        target: options.target,
+        staleThreshold: options.staleThreshold
+      });
+      if (result.action === 'set') {
+        console.log(chalk.green('✔') + ` Config updated: ${result.key}=${result.value}`);
+        console.log(chalk.dim(`  File: ${result.path}`));
+      } else {
+        console.log(chalk.bold('\nCurrent config:'));
+        const cfg = result.config;
+        if (Object.keys(cfg).length === 0) {
+          console.log(chalk.dim('  (defaults - no custom config)'));
+        } else {
+          for (const [k, v] of Object.entries(cfg)) {
+            console.log(`  ${k}: ${v}`);
+          }
+        }
+        console.log(chalk.dim(`\n  File: ${result.path}`));
+      }
+    } catch (err) {
+      console.error(`\n${chalk.red('✖')} ${chalk.bold('Config failed:')} ${err.message}`);
+      process.exit(1);
+    }
   });
 
 // Export command - raw directory export without platform structure
