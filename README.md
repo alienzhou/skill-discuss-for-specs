@@ -144,21 +144,118 @@ npx @vibe-x/discuss-for-specs uninstall --platform cursor
 
 In **Spec Driven Development (SDD)**, generating high-quality specifications is a well-known challenge:
 
-- **Good Specs are powerful**: Complete, rich specifications dramatically improve code generation quality and task completion rates
-- **But creating them is hard**: Generating comprehensive, well-thought-out Specs efficiently remains cognitively demanding
+- **Good Specs are powerful**: Complete, rich specifications dramatically improve code generation quality, task completion rates, and enable solving higher complexity problems
+- **But creating them is hard**: Generating comprehensive, well-thought-out Specs efficiently remains difficult and cognitively demanding
 - **The missing piece**: How do we produce high-quality Specs without overwhelming cognitive load?
 
 ### The Solution
 
-This project introduces **Discussion Mode** — an AI-facilitated conversation approach that helps you iteratively develop clear, actionable specifications:
+This project introduces **Discussion Mode** — an AI-facilitated conversation approach that helps you iteratively develop clear, actionable specifications. It solves three critical problems:
 
-| Capability | How It Works |
-| --- | --- |
-| **Agent-Driven Proactivity** | Agent proposes solutions and ideas; you only select, confirm, or answer — staying in the decision-maker role |
-| **State Management** | Continuously tracks discussion state through structured outlines; automatically captures confirmed decisions |
-| **Progressive Enhancement** | Start anytime (before Spec, during dev, while debugging); exit and precipitate decisions whenever ready |
+#### 1. Agent-Driven Proactivity
 
-### Without vs With Discussion Mode
+The AI Agent actively drives the discussion forward:
+
+- **Agent proposes**: Continuously provides solutions, alternatives, and ideas
+- **Human decides**: You only need to select, confirm, or answer questions
+- **Guided refinement**: Through this guided process, you naturally deepen and perfect technical solutions
+- **Reduced cognitive load**: You stay in the decision-maker role while the Agent handles the mental heavy lifting
+
+#### 2. State Management & Progress Tracking
+
+Never lose track in deep discussions:
+
+- **Maintains context**: Continuously tracks discussion state through structured outlines
+- **Decision precipitation**: Automatically captures and documents confirmed decisions
+- **Progress awareness**: Always knows where you are and what questions remain
+- **No details lost**: Deep, long-running discussions stay organized without effort
+- **Low-cost depth**: Engage in thorough exploration without worrying about losing the thread
+
+#### 3. Progressive Enhancement
+
+Flexible and adaptive to your workflow:
+
+- **Start anytime**: Before Spec generation, during development, while debugging, or when analyzing problems
+- **Controllable depth**: Exit and precipitate decisions whenever ready, or continue discussing until every detail is 100% confirmed
+- **Always relevant**: Effective whether you have a vague idea or a concrete challenge
+
+### 👀 See the Difference
+
+#### Conversation Flow
+
+**Without Discussion Mode** — You drive everything:
+
+```
+You ──────►  "I need to design a caching system. I'm thinking about
+             using Redis, but I'm not sure about the TTL strategy.
+             Should I use lazy expiration or active expiration?
+             Also, what about cache invalidation patterns? And
+             I need to consider the read/write ratio..."
+
+             (You must think of all questions yourself)
+             (You must structure your own thoughts)
+             (You must drive the conversation)
+                       │
+                       ▼
+Agent ────►  [Responds to what you asked]
+                       │
+                       ▼
+You ──────►  "OK, but what about... wait, I forgot to ask about..."
+
+             (You need to remember everything)
+             (You need to discover all edge cases)
+             (You might miss important aspects)
+                       │
+                       ▼
+                     .....
+
+😓 HIGH cognitive load: You think, you ask, you track, you remember
+```
+
+**With Discussion Mode** — Agent drives, you decide:
+
+```
+You ──────►  "Design a caching system"  (That's it. Just the topic.)
+                       │
+                       ▼
+Agent ────►  "Let me understand the problem space first.
+
+             💡 What's the primary driver for caching?
+                - Performance optimization?
+                - Cost reduction?
+                - Reliability improvement?
+
+             💡 I notice we should clarify the read/write ratio early -
+                this fundamentally affects architecture choices.
+
+             ❓ Is this more read-heavy or write-heavy?"
+                       │
+                       ▼
+You ──────►  "Read-heavy, for API responses"  (Simple answer)
+                       │
+                       ▼
+Agent ────►  "Good. For read-heavy API caching, there's something you
+             might not have considered:
+
+             💡 Cache-aside vs Read-through patterns have very different
+                invalidation complexity. Let me explain the tradeoffs...
+
+             ┌────────────── Progress Tracked ──────────────┐
+             │ ✅ Confirmed: Read-heavy API caching         │
+             │ 🔄 Discussing: Caching pattern selection     │
+             │ 📋 Pending: TTL strategy, Invalidation       │
+             └──────────────────────────────────────────────┘"
+                       │
+                       ▼
+You ──────►  "The first one"  (Simple choice)
+                       │
+                       ▼
+                     .....
+
+😊 LOW cognitive load: Agent thinks, Agent asks, Agent tracks, You decide
+```
+
+#### Output Comparison
 
 | ❌ Without Discussion Mode       | ✅ With Discussion Mode                                            |
 | :------------------------------- | :----------------------------------------------------------------- |
