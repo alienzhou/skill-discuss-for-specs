@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Pre-commit hook: auto-build skills.sh artifact
+# Ensures discuss-for-specs/ is always up-to-date before commit
+#
+# Setup: git config core.hooksPath .githooks
+#
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+BUILD_SCRIPT="${REPO_ROOT}/scripts/build-skills-sh.sh"
+
+# 检查源文件是否有变更（header、SKILL.md、references）
+SKILL_SRC="${REPO_ROOT}/skills/discuss-for-specs"
+STAGED_CHANGES=$(git diff --cached --name-only -- \
+  "${SKILL_SRC}/SKILL.md" \
+  "${SKILL_SRC}/headers/" \
+  "${SKILL_SRC}/references/" \
+  "npm-package/package.json" \
+  2>/dev/null || true)
+
+if [ -z "$STAGED_CHANGES" ]; then
+  # 源文件没有变更，检查产物是否存在
+  if [ -f "${REPO_ROOT}/discuss-for-specs/SKILL.md" ]; then
+    exit 0
+  fi
+fi
+
+echo "🔄 Rebuilding skills.sh artifact..."
+
+if [ ! -x "$BUILD_SCRIPT" ]; then
+  echo "❌ Build script not found or not executable: $BUILD_SCRIPT"
+  exit 1
+fi
+
+"$BUILD_SCRIPT"
+
+# 将产物加入暂存区
+git add "${REPO_ROOT}/discuss-for-specs/"
+
+echo "✅ skills.sh artifact staged"
