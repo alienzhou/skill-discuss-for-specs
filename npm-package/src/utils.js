@@ -19,9 +19,17 @@ export function getHomeDir() {
 
 /**
  * Get the base directory path for discuss-for-specs
- * All data (hooks, logs) is stored under ~/.discuss-for-specs/
+ * All data (hooks, logs, config) is stored under ~/.vibe-x/discuss-for-specs/
  */
 export function getBaseDir() {
+  return join(getHomeDir(), '.vibe-x', 'discuss-for-specs');
+}
+
+/**
+ * Get the old base directory path (for migration)
+ * @returns {string} Old base directory path (~/.discuss-for-specs)
+ */
+export function getOldBaseDir() {
   return join(getHomeDir(), '.discuss-for-specs');
 }
 

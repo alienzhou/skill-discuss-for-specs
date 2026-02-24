@@ -23,7 +23,8 @@ import {
   getProjectHooksDir,
   installHooksConfig,
   removeHooksConfig,
-  platformSupportsStopHook
+  platformSupportsStopHook,
+  cleanupOldHooksConfig
 } from './platform-config.js';
 
 import {
@@ -160,10 +161,21 @@ export async function install(options = {}) {
     info(`Installing for ${colors.bold(platformConfig.name)} (user-level)`);
   }
 
-  // 4. Get package root (where dist/ and hooks/ are)
+  // 4. Clean up old hooks configuration (migration from old path)
+  // This prevents duplicate hook triggers when upgrading from old version
+  const isL2Platform = platformSupportsStopHook(targetPlatform);
+  if (isL2Platform) {
+    const oldConfigCleaned = cleanupOldHooksConfig(targetPlatform, { targetDir: isProjectLevel ? targetDir : null });
+    if (oldConfigCleaned) {
+      newline();
+      info('Cleaned up old hooks configuration (migrating to new path)');
+    }
+  }
+
+  // 5. Get package root (where dist/ and hooks/ are)
   const packageRoot = getPackageRoot();
   
-  // 5. Install Skills (unless skipped)
+  // 6. Install Skills (unless skipped)
   if (!options.skipSkills) {
     newline();
     spinner = createSpinner('Installing Skills...');
@@ -256,11 +268,10 @@ export async function install(options = {}) {
     }
   }
 
-  // 6. Install Hooks (unless skipped)
-  // For project-level: install hooks to project directory
-  // For user-level: install hooks to ~/.discuss-for-specs/hooks/
+  // 7. Install Hooks (unless skipped)
+  // For project-level: install hooks to ${projectDir}/.vibe-x/discuss-for-specs/hooks/
+  // For user-level: install hooks to ~/.vibe-x/discuss-for-specs/hooks/
   // Note: L1 platforms don't have hooks support, skip for them
-  const isL2Platform = platformSupportsStopHook(targetPlatform);
   
   if (!options.skipHooks && isL2Platform) {
     newline();
@@ -272,11 +283,11 @@ export async function install(options = {}) {
     // Determine hooks destination based on installation mode
     let destHooks;
     if (isProjectLevel) {
-      // Project-level: install hooks to project/.{platform}/hooks/
+      // Project-level: install hooks to ${projectDir}/.vibe-x/discuss-for-specs/hooks/
       destHooks = getProjectHooksDir(targetPlatform, targetDir);
       spinner.text = 'Installing Hooks (project-level)...';
     } else {
-      // User-level: install hooks to ~/.discuss-for-specs/hooks/
+      // User-level: install hooks to ~/.vibe-x/discuss-for-specs/hooks/
       destHooks = getHooksDir();
       spinner.text = 'Installing Hooks (user-level)...';
     }
@@ -335,7 +346,7 @@ export async function install(options = {}) {
     info(`${colors.dim('Use "Precipitation Discipline" section in SKILL.md for manual reminders')}`);
   }
 
-  // 7. Done - show completion box
+  // 8. Done - show completion box
   const components = [];
   if (!options.skipSkills) {
     components.push(`Skills: ${getSkillsDir(targetPlatform, targetDir)}`);
@@ -450,7 +461,7 @@ export async function uninstall(options = {}) {
   // 4. Done
   const noteMessage = isProjectLevel 
     ? 'Project-level installation removed.'
-    : 'Note: Logs directory was preserved at ~/.discuss-for-specs/logs/\nDelete it manually if you want to remove all data.';
+    : 'Note: Logs directory was preserved at ~/.vibe-x/discuss-for-specs/logs/\nDelete it manually if you want to remove all data.';
   
   showUninstallBox(
     'Uninstallation complete!',

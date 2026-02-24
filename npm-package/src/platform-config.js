@@ -234,13 +234,152 @@ python3 "${join(hooksDir, 'stop', 'check_precipitation.py')}"
 /**
  * Get project-level hooks directory
  * 
- * @param {string} platformId - Platform ID
+ * New structure: ${projectDir}/.vibe-x/discuss-for-specs/hooks/
+ * 
+ * @param {string} platformId - Platform ID (kept for API compatibility, not used in new structure)
  * @param {string} targetDir - Target project directory
  * @returns {string} Hooks directory path
  */
 export function getProjectHooksDir(platformId, targetDir) {
+  return join(targetDir, '.vibe-x', 'discuss-for-specs', 'hooks');
+}
+
+/**
+ * Get old project-level hooks directory (for migration)
+ * 
+ * Old structure: ${projectDir}/.{platform}/hooks/
+ * 
+ * @param {string} platformId - Platform ID
+ * @param {string} targetDir - Target project directory
+ * @returns {string} Old hooks directory path
+ */
+export function getOldProjectHooksDir(platformId, targetDir) {
   const config = getPlatformConfig(platformId);
   return join(targetDir, config.configDir, 'hooks');
+}
+
+/**
+ * Get old user-level hooks directory (for migration)
+ * 
+ * Old structure: ~/.discuss-for-specs/hooks/
+ * 
+ * @returns {string} Old hooks directory path
+ */
+export function getOldHooksDir() {
+  return join(getHomeDir(), '.discuss-for-specs', 'hooks');
+}
+
+/**
+ * Clean up old hooks configuration from platform settings
+ * 
+ * This removes hooks that reference the old path (~/.discuss-for-specs/hooks/)
+ * to prevent duplicate hook triggers when upgrading to new version.
+ * 
+ * @param {string} platformId - Platform ID
+ * @param {Object} [options] - Options
+ * @param {string} [options.targetDir] - Target project directory for project-level cleanup
+ * @returns {boolean} True if old config was found and cleaned
+ */
+export function cleanupOldHooksConfig(platformId, options = {}) {
+  const config = getPlatformConfig(platformId);
+  const { targetDir = null } = options;
+  
+  // L1 platforms don't have hooks support
+  if (config.level === 'L1' || !config.hooksFormat) {
+    return false;
+  }
+  
+  const oldHooksPath = '.discuss-for-specs/hooks';
+  let cleaned = false;
+  
+  if (config.hooksFormat === 'claude-code') {
+    const settingsPath = getSettingsPath(platformId, targetDir);
+    
+    if (!existsSync(settingsPath)) {
+      return false;
+    }
+    
+    try {
+      const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+      
+      if (settings.hooks?.Stop) {
+        const originalLength = settings.hooks.Stop.length;
+        // Remove hooks that reference old path
+        settings.hooks.Stop = settings.hooks.Stop.filter(
+          h => !JSON.stringify(h).includes(oldHooksPath)
+        );
+        
+        if (settings.hooks.Stop.length < originalLength) {
+          cleaned = true;
+          if (settings.hooks.Stop.length === 0) {
+            delete settings.hooks.Stop;
+          }
+          if (Object.keys(settings.hooks).length === 0) {
+            delete settings.hooks;
+          }
+          writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+        }
+      }
+    } catch (e) {
+      // Silent - old config may not exist or be invalid
+    }
+    
+  } else if (config.hooksFormat === 'cursor') {
+    const settingsPath = getSettingsPath(platformId, targetDir);
+    
+    if (!existsSync(settingsPath)) {
+      return false;
+    }
+    
+    try {
+      const hooksConfig = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+      
+      if (hooksConfig.hooks?.stop) {
+        const originalLength = hooksConfig.hooks.stop.length;
+        // Remove hooks that reference old path
+        hooksConfig.hooks.stop = hooksConfig.hooks.stop.filter(
+          h => !h.command?.includes(oldHooksPath)
+        );
+        
+        if (hooksConfig.hooks.stop.length < originalLength) {
+          cleaned = true;
+          if (hooksConfig.hooks.stop.length === 0) {
+            delete hooksConfig.hooks.stop;
+          }
+          writeFileSync(settingsPath, JSON.stringify(hooksConfig, null, 2), 'utf-8');
+        }
+      }
+    } catch (e) {
+      // Silent - old config may not exist or be invalid
+    }
+    
+  } else if (config.hooksFormat === 'cline') {
+    // Cline: check if old script references old path
+    let clineHooksDir;
+    if (targetDir) {
+      clineHooksDir = join(targetDir, '.clinerules', 'hooks');
+    } else {
+      clineHooksDir = join(getHomeDir(), 'Documents', 'Cline', 'Hooks');
+    }
+    
+    const scriptPath = join(clineHooksDir, 'task_complete.sh');
+    
+    if (existsSync(scriptPath)) {
+      try {
+        const content = readFileSync(scriptPath, 'utf-8');
+        if (content.includes(oldHooksPath)) {
+          // Remove the old script - will be replaced with new one
+          const { unlinkSync } = require('fs');
+          unlinkSync(scriptPath);
+          cleaned = true;
+        }
+      } catch (e) {
+        // Silent
+      }
+    }
+  }
+  
+  return cleaned;
 }
 
 /**

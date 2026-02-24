@@ -615,6 +615,6 @@ Don't wait to be reminded.
     
     // Verify no hooks-related directories exist
     assert.strictEqual(existsSync(join(exportDir, 'hooks')), false, 'No hooks directory');
-    assert.strictEqual(existsSync(join(exportDir, '.discuss-for-specs')), false, 'No .discuss-for-specs directory');
+    assert.strictEqual(existsSync(join(exportDir, '.vibe-x')), false, 'No .vibe-x directory');
   });
 });

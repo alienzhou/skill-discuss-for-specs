@@ -172,22 +172,24 @@ describe('getSettingsPath', () => {
 
 
 describe('getProjectHooksDir', () => {
-  test('returns project-level hooks path for claude-code', () => {
+  test('returns project-level hooks path with new structure', () => {
     const targetDir = '/my/project';
+    // New structure: ${projectDir}/.vibe-x/discuss-for-specs/hooks/
     const result = getProjectHooksDir('claude-code', targetDir);
-    assert.strictEqual(result, join(targetDir, '.claude', 'hooks'));
+    assert.strictEqual(result, join(targetDir, '.vibe-x', 'discuss-for-specs', 'hooks'));
   });
 
-  test('returns project-level hooks path for cursor', () => {
+  test('returns same path for all platforms (unified structure)', () => {
     const targetDir = '/my/project';
-    const result = getProjectHooksDir('cursor', targetDir);
-    assert.strictEqual(result, join(targetDir, '.cursor', 'hooks'));
-  });
-
-  test('returns project-level hooks path for kilocode (L1 platform)', () => {
-    const targetDir = '/my/project';
-    const result = getProjectHooksDir('kilocode', targetDir);
-    assert.strictEqual(result, join(targetDir, '.kilocode', 'hooks'));
+    // All platforms now use the same hooks directory structure
+    const claudeResult = getProjectHooksDir('claude-code', targetDir);
+    const cursorResult = getProjectHooksDir('cursor', targetDir);
+    const kilocodeResult = getProjectHooksDir('kilocode', targetDir);
+    
+    const expectedPath = join(targetDir, '.vibe-x', 'discuss-for-specs', 'hooks');
+    assert.strictEqual(claudeResult, expectedPath);
+    assert.strictEqual(cursorResult, expectedPath);
+    assert.strictEqual(kilocodeResult, expectedPath);
   });
 });
 

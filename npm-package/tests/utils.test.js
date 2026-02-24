@@ -31,24 +31,26 @@ describe('Directory Path Functions', () => {
   test('getConfigDir returns correct path', () => {
     const home = getHomeDir();
     const result = getConfigDir();
-    assert.strictEqual(result, join(home, '.discuss-for-specs'));
+    assert.strictEqual(result, join(home, '.vibe-x', 'discuss-for-specs'));
   });
 
   test('getDataDir returns correct path', () => {
     const home = getHomeDir();
     const result = getDataDir();
-    assert.strictEqual(result, join(home, '.discuss-for-specs'));
+    assert.strictEqual(result, join(home, '.vibe-x', 'discuss-for-specs'));
   });
 
   test('getHooksDir returns correct path', () => {
     const result = getHooksDir();
-    assert.ok(result.includes('.discuss-for-specs'));
+    assert.ok(result.includes('.vibe-x'));
+    assert.ok(result.includes('discuss-for-specs'));
     assert.ok(result.endsWith('hooks'));
   });
 
   test('getLogsDir returns correct path', () => {
     const result = getLogsDir();
-    assert.ok(result.includes('.discuss-for-specs'));
+    assert.ok(result.includes('.vibe-x'));
+    assert.ok(result.includes('discuss-for-specs'));
     assert.ok(result.endsWith('logs'));
   });
 });

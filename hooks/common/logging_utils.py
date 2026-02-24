@@ -1,9 +1,9 @@
 """
 Logging utilities for discuss-for-specs hooks.
 
-All data is stored under ~/.discuss-for-specs/
-- ~/.discuss-for-specs/hooks/  - Hook scripts
-- ~/.discuss-for-specs/logs/   - Log files
+All data is stored under ~/.vibe-x/discuss-for-specs/
+- ~/.vibe-x/discuss-for-specs/hooks/  - Hook scripts
+- ~/.vibe-x/discuss-for-specs/logs/   - Log files
 
 Log Format Design (Concurrent-Safe):
 - Each log line includes [HOOK_NAME] prefix for filtering in multi-process scenarios
@@ -29,7 +29,7 @@ from typing import List, Optional
 # Directory paths
 def get_base_dir() -> Path:
     """Get base directory path for discuss-for-specs."""
-    return Path.home() / ".discuss-for-specs"
+    return Path.home() / ".vibe-x" / "discuss-for-specs"
 
 
 def get_config_dir() -> Path:
