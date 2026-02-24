@@ -36,6 +36,7 @@ env/
 .dmypy.json
 dmypy.json
 platforms/*/build/
+.agentlens/
 
 # NPM package build artifacts
 npm-package/dist/
