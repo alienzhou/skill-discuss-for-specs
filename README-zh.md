@@ -1,3 +1,6 @@
+> **⚠️ 已迁移：** 本仓库已合并迁移至 [`alienzhou/doraemon-skills`](https://github.com/alienzhou/doraemon-skills)。请改用新仓库安装 / 查看最新内容。本仓库即将归档，请勿再向本仓库提交。
+
+
 # Skill Discuss for Specs
 
 > 每当你有一个想法，希望让它变得更清晰、更具可执行性时，使用这个项目。
